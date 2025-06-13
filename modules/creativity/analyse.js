@@ -65,32 +65,101 @@ Return only valid JSON without any other text:
 }
 
 export async function runTechnicalFeasibiltyAnalysis(new_idea) {
-  const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
-  Vector Embedding
-  Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model.  
-  Include this as an array of floats under the key "embedding".
-  Cluster Assignment 
-  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
-  Record that as an integer cluster_id (0 through k-1).
-  Technical Feasibility Scoring
-  Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
-  0–30: Not technically feasible (speculative, unproven tech)  
-  31–70: Partially feasible (requires R&D or custom engineering)  
-  71–100: Technically feasible (implementable today)  
-  Categorization
-  Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
-  Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
-  Your response must be returned as **valid JSON only**, with no explanations or extra text.
-  Final Output format:
-  Return only valid JSON without any other text:
-  {
-   "feasibility_score": <integer 0–100>,
-   "idea_category": "<string>",
-   "idea_cluster": "<string>",
-   "cluster_id": <integer>,
-   "embedding": [<float>, <float>, …]
-  }
-  `;
+  // const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
+  // Vector Embedding
+  // Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model.  
+  // Include this as an array of floats under the key "embedding".
+  // Cluster Assignment 
+  // Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
+  // Record that as an integer cluster_id (0 through k-1).
+  // Technical Feasibility Scoring
+  // Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
+  // 0–30: Not technically feasible (speculative, unproven tech)  
+  // 31–70: Partially feasible (requires R&D or custom engineering)  
+  // 71–100: Technically feasible (implementable today)  
+  // Categorization
+  // Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
+  // Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
+  // Your response must be returned as **valid JSON only**, with no explanations or extra text.
+  // Output format:
+  // {
+  //  "feasibility_score": <integer 0–100>,
+  //  "idea_category": "<string>",
+  //  "idea_cluster": "<string>",
+  //  "cluster_id": <integer>,
+  //  "embedding": [<float>, <float>, …]
+  // }
+  // Examples:
+  // Idea: “A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread.”
+  // Output:
+  // {
+  //  "feasibility_score": 72,
+  //  "idea_category": "Environment",
+  //  "idea_cluster": "Wildfire Prevention",
+  //  "cluster_id": 3,
+  //  "embedding": [0.023, -0.112, 0.345, …]
+  // }
+  // Idea: “AI that implants ideas into people’s dreams to influence behavior.”
+  // Output:
+  // {
+  //  "feasibility_score": 12,
+  //  "idea_category": "General AI",
+  //  "idea_cluster": "Speculative Concepts",
+  //  "cluster_id": 7,
+  //  "embedding": [0.512, -0.301, 0.047, …]
+  // }
+  // Idea: " "
+  // Output:
+  // {
+  //   "feasibility_score": 0,
+  //   "idea_category": "n/a",
+  //   "idea_cluster": "n/a",
+  //   cluster_id: ,
+  //   embedding": []
+  // },
+  // Idea: "Hello World",
+  // Output:
+  // {
+  //   "feasibility_score": 0,
+  //   "idea_category": "n/a",
+  //   "idea_cluster": "n/a",
+  //   "cluster_id": ,
+  //   "embedding": []
+  // }
+  // Now evaluate this new idea:
+  // `;
+  const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow the steps below in order:
+INPUT VALIDATION
+Before proceeding with the steps below, ensure that the INPUTS conform to the following:
+The "New Idea" must be a string.
+The "Existing Ideas" must be a list of dictionaries. Each dictionary must contain the keys "idea_id" (string), "idea_text" (string), "embedding" (a list of floats), and "cluster_id" (integer).
+The "embedding" must be a list of floats.
+The "cluster_id" must be an integer.
+Vector Embedding
+Generate a fixed-length vector embedding for the user idea using the textembedding-gecko@001 model.
+Include this as an array of floats under the key "embedding".
+Cluster Assignment
+Using a pre-trained K-Means model with k centroids (provided separately), assign the new idea’s embedding to its nearest cluster.
+Return "cluster_id" as an integer from 0 to k-1.
+Technical Feasibility Scoring
+Evaluate the plausibility of the idea based on current off-the-shelf AI tools, cloud services, and engineering practices.
+Assign a "feasibility_score" from 0–100:
+0–30: Not technically feasible (speculative or unproven tech)
+31–70: Partially feasible (requires custom R&D or complex engineering)
+71–100: Technically feasible (can be implemented today)
+Categorization
+Choose a broad "idea_category" such as: Education, Finance, Health, Environment, Governance, Logistics, Media, Agriculture, etc.
+Choose a specific "idea_cluster" (subdomain), such as: AI Tutoring, Fraud Detection, Wildfire Prevention, Precision Farming, Clinical Diagnostics, etc.
+FINAL OUTPUT FORMAT
+Return only valid JSON without any other text:
+{
+"feasibility_score": <integer>,
+"idea_category": "<string>",
+"idea_cluster": "<string>",
+"cluster_id": <integer>,
+"embedding": [<float>, <float>, ...],
+}
+`;
   const userInput = JSON.stringify({ new_idea });
 
   return callGemini(systemPrompt, userInput);
