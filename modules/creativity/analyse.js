@@ -81,7 +81,8 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
   Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
   Your response must be returned as **valid JSON only**, with no explanations or extra text.
-  Output format:
+  Final Output format:
+  Return only valid JSON without any other text:
   {
    "feasibility_score": <integer 0–100>,
    "idea_category": "<string>",
@@ -89,44 +90,6 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
    "cluster_id": <integer>,
    "embedding": [<float>, <float>, …]
   }
-  Examples:
-  Idea: “A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread.”
-  Output:
-  {
-   "feasibility_score": 72,
-   "idea_category": "Environment",
-   "idea_cluster": "Wildfire Prevention",
-   "cluster_id": 3,
-   "embedding": [0.023, -0.112, 0.345, …]
-  }
-  Idea: “AI that implants ideas into people’s dreams to influence behavior.”
-  Output:
-  {
-   "feasibility_score": 12,
-   "idea_category": "General AI",
-   "idea_cluster": "Speculative Concepts",
-   "cluster_id": 7,
-   "embedding": [0.512, -0.301, 0.047, …]
-  }
-  Idea: " "
-  Output:
-  {
-    "feasibility_score": 0,
-    "idea_category": "n/a",
-    "idea_cluster": "n/a",
-    cluster_id: ,
-    embedding": []
-  },
-  Idea: "Hello World",
-  Output:
-  {
-    "feasibility_score": 0,
-    "idea_category": "n/a",
-    "idea_cluster": "n/a",
-    "cluster_id": ,
-    "embedding": []
-  }
-  Now evaluate this new idea:
   `;
   const userInput = JSON.stringify({ new_idea });
 
