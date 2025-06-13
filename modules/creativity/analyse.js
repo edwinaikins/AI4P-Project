@@ -67,8 +67,8 @@ Return only valid JSON without any other text:
 export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
   Vector Embedding
-  Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.  
-  Include this embedding (an array of floats) in your output under the key "embedding".
+  Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model.  
+  Include this as an array of floats under the key "embedding".
   Cluster Assignment 
   Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
   Record that as an integer cluster_id (0 through k-1).
