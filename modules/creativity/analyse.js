@@ -6,10 +6,10 @@ INPUT VALIDATION
 Before proceeding with the steps below, ensure that the INPUTS conform to the following:
 The "New Idea" must be a string.
 The "Existing Ideas" must be a list of dictionaries. Each dictionary must contain the keys "idea_id" (string), "idea_text" (string), "embedding" (a list of floats), and "cluster_id" (integer).
-The "embedding" must be a list of floats.
+The "embedding" must be a list of floats (fixed length exactly 128).
 The "cluster_id" must be an integer.
 Vector Embedding
-Generate a fixed-length vector embedding for the user idea using the textembedding-gecko@001 model.
+Generate a fixed-length vector embedding for the user idea using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).
 Include this as an array of floats under the key "embedding".
 Cluster Assignment
 Using a pre-trained K-Means model with k centroids (provided separately), assign the new idea’s embedding to its nearest cluster.
@@ -67,7 +67,7 @@ Return only valid JSON without any other text:
 export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
   Vector Embedding
-  Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model.  
+  Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).  
   Include this as an array of floats under the key "embedding".
   Cluster Assignment 
   Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
