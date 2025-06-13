@@ -129,7 +129,7 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   
   Now evaluate this new idea:
   `;
-  const userInput = JSON.stringify(new_idea);
+  const userInput = new_idea;
 
   return callGemini(systemPrompt, userInput);
 }
