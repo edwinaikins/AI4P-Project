@@ -129,7 +129,7 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   
   Now evaluate this new idea:
   `;
-  const userInput = new_idea;
+  const userInput = JSON.stringify({ new_idea });
 
   return callGemini(systemPrompt, userInput);
 }
@@ -206,7 +206,7 @@ export async function runImpactAssessmentAnalysis(new_idea){
   
   Now evaluate this new idea:
   `;
-  const userInput = JSON.stringify(new_idea);
+  const userInput = JSON.stringify({ new_idea });
 
   return callGemini(systemPrompt, userInput);
 }
@@ -287,7 +287,7 @@ export async function runEthicalEvaluationAnalysis(new_idea){
   
   Now assess this idea:  
   `;
-  const userInput = JSON.stringify(new_idea);
+  const userInput = JSON.stringify({ new_idea });
 
   return callGemini(systemPrompt, userInput);
 }
@@ -371,7 +371,7 @@ Vector Embedding
   
   Now assess this idea:  
   `;
-  const userInput = JSON.stringify(new_idea);
+  const userInput = JSON.stringify({ new_idea });
 
   return callGemini(systemPrompt, userInput);
 }
