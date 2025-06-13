@@ -66,20 +66,20 @@ Return only valid JSON without any other text:
 
 export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
-  0. Vector Embedding
-    • Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.  
-    • Include this embedding (an array of floats) in your output under the key "embedding".
-  1. Cluster Assignment 
-    • Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
-    • Record that as an integer cluster_id (0 through k-1).
-  2. Technical Feasibility Scoring
-    • Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
-     – 0–30: Not technically feasible (speculative, unproven tech)  
-     – 31–70: Partially feasible (requires R&D or custom engineering)  
-     – 71–100: Technically feasible (implementable today)  
-  3. Categorization
-    • Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
-    • Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
+  Vector Embedding
+  Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.  
+  Include this embedding (an array of floats) in your output under the key "embedding".
+  Cluster Assignment 
+  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
+  Record that as an integer cluster_id (0 through k-1).
+  Technical Feasibility Scoring
+  Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
+  0–30: Not technically feasible (speculative, unproven tech)  
+  31–70: Partially feasible (requires R&D or custom engineering)  
+  71–100: Technically feasible (implementable today)  
+  Categorization
+  Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
+  Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
   Your response must be returned as **valid JSON only**, with no explanations or extra text.
   Output format:
   {
@@ -126,7 +126,6 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
     "cluster_id": ,
     "embedding": []
   }
-  
   Now evaluate this new idea:
   `;
   const userInput = JSON.stringify({ new_idea });
@@ -139,23 +138,19 @@ export async function runImpactAssessmentAnalysis(new_idea){
   Your job is to analyze the idea and assess **how significant and positive its impact could be** if implemented. Focus on potential improvements to human life, social systems, the environment, or peace-building.
   For each given idea, perform the following steps in order:  
   Vector Embedding
-   • Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
-   • Include this embedding (an array of floats) in your output under the key "embedding".
-  
+  Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
+  Include this embedding (an array of floats) in your output under the key "embedding".
   Cluster Assignment
-   • Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
-   • Record that as an integer cluster_id (0 through k-1).
-  
+  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
+  Record that as an integer cluster_id (0 through k-1).
   Impact Scoring
-   • Assess the potential positive societal impact of the AI idea using the following scale:
-   – 0–30: Low impact — very limited or unclear societal benefit
-   – 31–70: Moderate impact — helpful in a focused or narrow area
-   – 71–100: High impact — widespread, transformative, or highly aligned with public good
-  
+  Assess the potential positive societal impact of the AI idea using the following scale:
+  0–30: Low impact — very limited or unclear societal benefit
+  31–70: Moderate impact — helpful in a focused or narrow area
+  71–100: High impact — widespread, transformative, or highly aligned with public good
   Categorization
-   • Choose a broad "idea_category" (e.g., Education, Health, Finance, Environment, Governance, etc.)
-   • Choose a specific "idea_cluster" (e.g., AI Tutoring, Climate Monitoring, Civic Tech, Market Access, etc.)
-  
+  Choose a broad "idea_category" (e.g., Education, Health, Finance, Environment, Governance, etc.)
+  Choose a specific "idea_cluster" (e.g., AI Tutoring, Climate Monitoring, Civic Tech, Market Access, etc.)
   Your response must be returned as valid JSON only, with no explanations or extra text.
   Format:
   {
@@ -165,7 +160,6 @@ export async function runImpactAssessmentAnalysis(new_idea){
    "cluster_id": <integer>,
    "embedding": [<float>, <float>, …]
   }
-  
   Examples:
   Idea: “An AI tool that helps detect depression early in teenagers by analyzing voice and text patterns.”
   Output:
@@ -203,7 +197,6 @@ export async function runImpactAssessmentAnalysis(new_idea){
     "cluster_id": ,
     "embedding": []
   }
-  
   Now evaluate this new idea:
   `;
   const userInput = JSON.stringify({ new_idea });
@@ -214,29 +207,26 @@ export async function runImpactAssessmentAnalysis(new_idea){
 export async function runEthicalEvaluationAnalysis(new_idea){
   const systemPrompt = `You are an AI ethics advisor assessing the ethical risks of proposed AI projects.
   Your job is to identify the **presence of potential ethical concerns**, such as:
-  - Bias or discrimination
-  - Privacy invasion
-  - Misuse or dual-use risk
-  - Lack of transparency or explainability
-  - Harm to vulnerable groups
+  Bias or discrimination
+  Privacy invasion
+  Misuse or dual-use risk
+  Lack of transparency or explainability
+  Harm to vulnerable groups
   For each given idea, perform the following steps in order:
   Vector Embedding
-   • Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
-   • Include this embedding (an array of floats) in your output under the key "embedding".
-  
+  Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
+  Include this embedding (an array of floats) in your output under the key "embedding".
   Cluster Assignment
-   • Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
-   • Record that as an integer cluster_id (0 through k-1).
-  
+  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
+  Record that as an integer cluster_id (0 through k-1).
   Ethical Risk Scoring
-   • Based on possible issues including bias, privacy invasion, explainability, dual-use risks, and potential harm to vulnerable groups, assign an ethical_score from 0–100:
-   – 0–30: High ethical risk — serious concerns or likely harm
-   – 31–70: Moderate ethical risk — concerns that need mitigation
-   – 71–100: Low ethical risk — minimal ethical concerns
-  
+  Based on possible issues including bias, privacy invasion, explainability, dual-use risks, and potential harm to vulnerable groups, assign an ethical_score from 0–100:
+  0–30: High ethical risk — serious concerns or likely harm
+  31–70: Moderate ethical risk — concerns that need mitigation
+  71–100: Low ethical risk — minimal ethical concerns
   Categorization
-   • Choose a broad "idea_category" (e.g., Education, Health, Finance, Governance, etc.)
-   • Choose a specific "idea_cluster" (e.g., Fraud Detection, Digital Identity, AI Tutoring, Surveillance Tech, etc.)
+  Choose a broad "idea_category" (e.g., Education, Health, Finance, Governance, etc.)
+  Choose a specific "idea_cluster" (e.g., Fraud Detection, Digital Identity, AI Tutoring, Surveillance Tech, etc.)
   Your response must be returned as valid JSON only, with no explanations or extra text.
   Format:
   {
@@ -246,7 +236,6 @@ export async function runEthicalEvaluationAnalysis(new_idea){
    "cluster_id": <integer>,
    "embedding": [<float>, <float>, …]
   }
-  
   Examples:
   Idea: “AI-based hiring platform that scans facial expressions to assess honesty.”
   Output:
@@ -284,7 +273,6 @@ export async function runEthicalEvaluationAnalysis(new_idea){
     "cluster_id": ,
     "embedding": []
   }
-  
   Now assess this idea:  
   `;
   const userInput = JSON.stringify({ new_idea });
@@ -294,24 +282,20 @@ export async function runEthicalEvaluationAnalysis(new_idea){
 
 export async function runClarityandCoherenceAnalysis(new_idea){
   const systemPrompt = `You are an expert evaluator in assessing the clarity and coherence of AI solution ideas. For each given idea, perform the following steps in order:
-Vector Embedding
-   • Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
-   • Include this embedding (an array of floats) in your output under the key "embedding".
-  
+  Vector Embedding
+  Generate a fixed-length vector embedding for the idea text using the textembedding-gecko@001 model.
+  Include this embedding (an array of floats) in your output under the key "embedding".
   Cluster Assignment
-   • Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
-   • Record that as an integer cluster_id (0 through k-1).
-  
+  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.
+  Record that as an integer cluster_id (0 through k-1).
   Clarity Scoring
-   • Based on linguistic quality, grammar, completeness, and conceptual coherence, assign a clarity_score from 0–100:
-   – 0–30: Poor (vague, incoherent, or grammatically flawed)
-   – 31–70: Moderate (partially clear but may contain ambiguity or structure issues)
-   – 71–100: High (clear, coherent, well-expressed)
-  
+  Based on linguistic quality, grammar, completeness, and conceptual coherence, assign a clarity_score from 0–100:
+  0–30: Poor (vague, incoherent, or grammatically flawed)
+  31–70: Moderate (partially clear but may contain ambiguity or structure issues)
+  71–100: High (clear, coherent, well-expressed)
   Categorization
-   • Choose a broad "idea_category" (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.)
-   • Choose a specific "idea_cluster" (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.)
-  
+  Choose a broad "idea_category" (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.)
+  Choose a specific "idea_cluster" (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.)
   Your response must be returned as valid JSON only, with no explanations or extra text.
   Output format:
   {
@@ -321,7 +305,6 @@ Vector Embedding
    "cluster_id": <integer>,
    "embedding": [<float>, <float>, …]
   }
-  
   Examples:
   Idea: “An AI platform that connects farmers to real-time market prices and weather updates via voice interface in local languages.”
   Output:
@@ -368,7 +351,6 @@ Vector Embedding
     "cluster_id": ,
     "embedding": []
   }
-  
   Now assess this idea:  
   `;
   const userInput = JSON.stringify({ new_idea });
