@@ -1,18 +1,17 @@
-import { runCreativityAnalysis } from '../modules/creativity/analyse.js';
-import { runTechnicalFeasibiltyAnalysis } from '../modules/creativity/analyse.js';
-import { runImpactAssessmentAnalysis } from '../modules/creativity/analyse.js';
-import { runEthicalEvaluationAnalysis } from '../modules/creativity/analyse.js';
-import { runClarityandCoherenceAnalysis } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation } from '../modules/creativity/analyse.js';
+import fs from 'fs/promises';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+
 
 export const analyseCreativity = async (req, res) => {
-  const { new_idea, existing_ideas } = req.body;
+  const { new_idea } = req.body;
 
-  if (typeof new_idea !== 'string' || !Array.isArray(existing_ideas)) {
+  if (typeof new_idea !== 'string') {
     return res.status(400).json({ error: 'Invalid input format' });
   }
 
   try {
-    const result = await runCreativityAnalysis(new_idea, existing_ideas);
+    const result = await runCreativityAnalysis(new_idea);
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -81,5 +80,51 @@ export const analyseClarityandCoherence = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({error: 'Model or server error', details: err.message});
+  }
+}
+
+export const analyseFullIdea = async (req, res) => {
+  const { new_idea } = req.body;
+
+  if (typeof new_idea !== 'string' || new_idea.trim() === '') {
+    return res.status(400).json({ error: 'Invalid or empty idea provided.' });
+  }
+
+  try {
+    const result = await runFullAIdeaEvaluation(new_idea);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server or model error', details: err.message });
+  }
+};
+
+export const analyseExtractIdea = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  try {
+    // read the uploaded file into buffer
+    const buffer = await fs.readFile(req.file.path);
+    let text;
+
+    // detect pdf vs plain text
+    if (req.file.mimetype === 'application/pdf') {
+      const pdf = await pdfParse(buffer);
+      text = pdf.text;
+    } else {
+      text = buffer.toString('utf-8');
+    }
+
+    // call llm-based extractor
+    const result = await runExtractIdeaAnalysis(text);
+
+    // clean up temp file
+    await fs.unlink(req.file.path);
+    
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Model or server error', details: err.message });
   }
 }

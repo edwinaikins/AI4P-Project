@@ -1,6 +1,64 @@
 import { callGemini } from "../../services/genai.service.js";
+import { Pool } from 'pg';
 
-export async function runCreativityAnalysis(new_idea, existing_ideas) {
+
+// PostgreSQL connection config
+const pool = new Pool({
+  user: 'ai4p-user',
+  host: '34.44.147.36',
+  database: 'ai4p-db',
+  password: '$21RJ}{)c?CD<D<i',
+  //port: 5432,
+  //ssl: true // if using Cloud SQL over public IP
+});
+
+// format idea parts into an idea_text
+function formatIdeaRowAsObject(row) {
+  // Construct the idea_text from the descriptive fields only
+  const ideaTextObject = {
+    "Idea Title": row.idea_title,
+    "Problem Statement": row.problem_statement,
+    "Proposed AI Solution": row.proposed_ai_solution,
+    "Potential Impact": row.potential_impact,
+    "Key Features/Functionality": row.key_features || [],
+    "Technical Requirements (Optional)": row.technical_requirements || [],
+    "Team (Optional)": row.team || "",
+    "Keywords/Tags": row.keywords || []
+  };
+
+  return {
+    idea_id: row.id,
+    idea_text: JSON.stringify(ideaTextObject), // Don't escape quotes; let JSON.stringify handle that
+    embedding: Array.isArray(row.embedding) ? row.embedding.slice(0, 128) : [],
+    cluster_id: parseInt(row.cluster_id)
+  };
+}
+
+
+// Fetch existing ideas with only required fields
+async function fetchExistingIdeas(limit = 50) {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, idea_title, problem_statement, proposed_ai_solution,
+      potential_impact, key_features, technical_requirements,
+      team, keywords, embedding, cluster_id
+      FROM ideas
+      WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
+      LIMIT $1
+    `, [limit]);
+
+    // Format the results as expected
+    const existing_ideas = rows.map(formatIdeaRowAsObject);
+
+    return existing_ideas;
+  } catch (error) {
+    console.error('Error fetching existing ideas:', error);
+    throw error;
+  }
+}
+
+
+export async function runCreativityAnalysis(new_idea) {
   const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow the steps below in order:
 INPUT VALIDATION
 Before proceeding with the steps below, ensure that the INPUTS conform to the following:
@@ -59,6 +117,7 @@ Return only valid JSON without any other text:
 },
 }
 `;
+  const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
   return callGemini(systemPrompt, userInput);
@@ -264,5 +323,69 @@ export async function runClarityandCoherenceAnalysis(new_idea){
   `;
   const userInput = JSON.stringify({ new_idea });
 
+  return callGemini(systemPrompt, userInput);
+}
+
+export async function runFullAIdeaEvaluation(new_idea) {
+  try {
+    const [
+      clarity,
+      impact,
+      ethical,
+      feasibility
+    ] = await Promise.all([
+      runClarityandCoherenceAnalysis(new_idea),
+      runImpactAssessmentAnalysis(new_idea),
+      runEthicalEvaluationAnalysis(new_idea),
+      runTechnicalFeasibiltyAnalysis(new_idea)
+    ]);
+
+    // Merge all outputs into one JSON
+    return {
+      ...clarity,
+      ...impact,
+      ...ethical,
+      ...feasibility
+    };
+
+  } catch (err) {
+    console.error('Error during full AI idea evaluation:', err);
+    throw err;
+  }
+}
+
+
+export async function runExtractIdeaAnalysis(docstext){
+  const systemPrompt = ` You are an expert AI idea analyst. You will be given the full text of a document describing a proposed AI idea. Your task is to read and understand the document, then automatically extract and summarize its key AI‑specific elements into a structured JSON object.
+  INSTRUCTIONS:
+  1. Read the provided text in its entirety.
+  2. Identify and extract exactly these fields—tailored for AI ideas:
+     - Idea Title
+     - Problem Statement
+     - Proposed AI Solution
+     - Potential Impact
+     - Key Features
+     - Technical Requirements
+     - Team
+     - Keywords
+  3. If any field is missing, set it to an empty string ("") or empty list ([]) as appropriate.
+  4. Do not include any additional commentary—output only the JSON object.
+  OUTPUT FORMAT:
+  Return exactly one JSON object matching this schema:
+  \`\`\`json
+  {
+    "Idea Title": "<string>",
+    "Problem Statement": "<string>",
+    "Proposed AI Solution": "<string>",
+    "Potential Impact": "<string>",
+    "Key Features": ["<string>", …],
+    "Technical Requirements": ["<string>", …],
+    "Team": ["<string>", …],
+    "Keywords": ["<string>", …]
+  }
+  \`\`\`  
+  `
+
+  const userInput = JSON.stringify({ document: docstext});
   return callGemini(systemPrompt, userInput);
 }
