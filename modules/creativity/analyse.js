@@ -126,7 +126,9 @@ async function insertNewIdea(parsedIdea, evaluationResults) {
     idea_category,
     idea_cluster,
     cluster_id,
-    embedding
+    embedding,
+    created_at,
+    updated_at
   ];
 
   try {
