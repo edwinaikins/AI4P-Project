@@ -10,7 +10,7 @@ router.post('/analysetechnicalfeasibility', analyseTechnicalFeasibility);
 router.post('/analyseimpactassessment', analyseImpactAssessment);
 router.post('/analyseethicalevaluation', analyseEthicalEvaluation);
 router.post('/analyseclarityandcoherence', analyseClarityandCoherence);
-router.post('/analyseFullIdea', analyseFullIdea);
+router.post('/analysefullidea', analyseFullIdea);
 router.post('/extractidea', upload.single('file'), analyseExtractIdea)
 
 export default router;

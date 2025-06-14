@@ -34,6 +34,110 @@ function formatIdeaRowAsObject(row) {
   };
 }
 
+// convert idea_text from json to js object
+function parseIdeaText(ideaText) {
+  try {
+    const ideaObject = JSON.parse(ideaText);
+
+    return {
+      idea_title: ideaObject["Idea Title"] || "",
+      problem_statement: ideaObject["Problem Statement"] || "",
+      proposed_ai_solution: ideaObject["Proposed AI Solution"] || "",
+      potential_impact: ideaObject["Potential Impact"] || "",
+      key_features: ideaObject["Key Features/Functionality"] || [],
+      technical_requirements: ideaObject["Technical Requirements (Optional)"] || [],
+      team: ideaObject["Team (Optional)"] || "",
+      keywords: ideaObject["Keywords/Tags"] || []
+    };
+  } catch (err) {
+    console.error("Failed to parse idea_text:", err);
+    throw new Error("Invalid idea_text format");
+  }
+}
+
+// Add a new idea to the database and return only the inserted ID
+async function insertNewIdea(parsedIdea, evaluationResults) {
+  const {
+    idea_title,
+    problem_statement,
+    proposed_ai_solution,
+    potential_impact,
+    key_features,
+    technical_requirements,
+    team,
+    keywords
+  } = parsedIdea;
+
+  const {
+    clarity_score,
+    impact_score,
+    ethical_score,
+    feasibility_score,
+    idea_category,
+    idea_cluster,
+    cluster_id,
+    embedding
+  } = evaluationResults;
+
+  const created_at = new Date(); // Current timestamp
+  const updated_at = new Date();
+
+  const query = `
+    INSERT INTO ideas (
+      idea_title,
+      problem_statement,
+      proposed_ai_solution,
+      potential_impact,
+      key_features,
+      technical_requirements,
+      team,
+      keywords,
+      clarity_score,
+      impact_score,
+      ethical_score,
+      feasibility_score,
+      idea_category,
+      idea_cluster,
+      cluster_id,
+      embedding,
+      created_at,
+      updated_at
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8,
+      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+    )
+    RETURNING id
+  `;
+
+  const values = [
+    idea_title,
+    problem_statement,
+    proposed_ai_solution,
+    potential_impact,
+    key_features,
+    technical_requirements,
+    team,
+    keywords,
+    clarity_score,
+    impact_score,
+    ethical_score,
+    feasibility_score,
+    idea_category,
+    idea_cluster,
+    cluster_id,
+    embedding
+  ];
+
+  try {
+    const { rows } = await pool.query(query, values);
+    return rows[0].id;
+  } catch (err) {
+    console.error("Failed to insert idea:", err);
+    throw err;
+  }
+}
+
 
 // Fetch existing ideas with only required fields
 async function fetchExistingIdeas(limit = 50) {
@@ -341,11 +445,22 @@ export async function runFullAIdeaEvaluation(new_idea) {
     ]);
 
     // Merge all outputs into one JSON
-    return {
+    const evaluationResults = {
       ...clarity,
       ...impact,
       ...ethical,
       ...feasibility
+    };
+
+    const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
+
+    // 4. Insert into DB (returns inserted ID)
+    const idea_id = await insertNewIdea(parsedIdea, evaluationResults);
+
+    // 5. Return both evaluation + inserted idea_id
+    return {
+      idea_id,
+      ...evaluationResults
     };
 
   } catch (err) {
