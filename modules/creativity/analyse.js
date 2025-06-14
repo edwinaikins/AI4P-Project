@@ -55,7 +55,7 @@ function parseIdeaTextToObject(ideaText) {
   }
 }
 
-// Add a new idea to the database and return only the inserted ID
+// Add a new fully fledged idea to the database and return only the inserted ID
 async function insertNewIdea(parsedIdea, evaluationResults) {
   const {
     idea_title,
@@ -140,6 +140,56 @@ async function insertNewIdea(parsedIdea, evaluationResults) {
   }
 }
 
+// Add a new basic idea to the database
+async function insertNewBasicIdea(new_idea, similarityResults) {
+  const {
+    feasibility_score,
+    idea_category,
+    idea_cluster,
+    most_similar_idea
+  } = similarityResults;
+  const { idea } = new_idea;
+  const created_at = new Date(); // Current timestamp
+
+  const query = `
+  INSERT INTO basic_ideas (
+    idea,
+    feasibility_score,
+    idea_category,
+    idea_cluster,
+    most_similar_idea,
+    created_at
+  )
+  VALUES (
+    $1, $2, $3, $4, $5, $6
+  )
+  RETURNING id
+  `;
+
+  const values = [
+    idea,
+    feasibility_score,
+    idea_category,
+    idea_cluster,
+    most_similar_idea?.idea_id || null,
+    created_at
+  ];
+
+  try {
+    const { rows } = await pool.query(query, values);
+    return {
+      status: 'success',
+      idea_id: rows[0].id
+    };
+  } catch (error) {
+    console.error('Error inserting basic idea:', error);
+    return {
+      status: 'error',
+      message: 'Database insert failed',
+      details: error.message
+    };
+  }
+}
 
 // Fetch existing ideas with only required fields
 async function fetchExistingIdeas(limit = 50) {
@@ -227,6 +277,26 @@ Return only valid JSON without any other text:
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
   return callGemini(systemPrompt, userInput);
+}
+
+export async function runCreativityAnalysisandInsertIdea(new_idea) {
+  try {
+    // Step 1: Run creativity analysis to get similarity and metadata
+    const similarityResults = await runCreativityAnalysis(new_idea);
+
+    // Step 2: Insert into the database
+    const result = await insertNewBasicIdea(new_idea, similarityResults);
+
+    // return result; // { status: 'success', idea_id: '...' }
+    return similarityResults;
+  } catch (err) {
+    console.error('Error in analyzeAndInsertNewIdea:', err);
+    return {
+      status: 'error',
+      message: 'Failed to analyze or insert idea.',
+      details: err.message
+    };
+  }
 }
 
 export async function runTechnicalFeasibiltyAnalysis(new_idea) {
