@@ -35,7 +35,7 @@ function formatIdeaRowAsObject(row) {
 }
 
 // convert idea_text from json to js object
-function parseIdeaText(ideaText) {
+function parseIdeaTextToObject(ideaText) {
   try {
     const ideaObject = JSON.parse(ideaText);
 
