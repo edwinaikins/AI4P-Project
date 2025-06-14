@@ -460,14 +460,24 @@ export async function runFullAIdeaEvaluation(new_idea) {
     const idea_id = await insertNewIdea(parsedIdea, evaluationResults);
 
     // 5. Return both evaluation + inserted idea_id
+    // return {
+    //   idea_id,
+    //   ...evaluationResults
+    // };
+
     return {
-      idea_id,
-      ...evaluationResults
+      status: 'success',
+      message: 'Idea evaluated and inserted successfully.'
     };
 
   } catch (err) {
     console.error('Error during full AI idea evaluation:', err);
-    throw err;
+    //throw err;
+    return {
+      status: 'error',
+      message: 'Something went wrong during idea evaluation or insertion.',
+      error: err.message
+    }
   }
 }
 
