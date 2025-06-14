@@ -148,7 +148,6 @@ async function insertNewBasicIdea(new_idea, similarityResults) {
     idea_cluster,
     most_similar_idea
   } = similarityResults;
-  const { idea } = new_idea;
   const created_at = new Date(); // Current timestamp
 
   const query = `
@@ -167,7 +166,7 @@ async function insertNewBasicIdea(new_idea, similarityResults) {
   `;
 
   const values = [
-    idea,
+    new_idea,
     feasibility_score,
     idea_category,
     idea_cluster,
