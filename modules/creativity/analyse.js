@@ -1,5 +1,5 @@
 import { callGemini } from "../../services/genai.service.js";
-import { Pool } from "../../config/db.js";
+import { Pool } from 'pg';
 
 
 // PostgreSQL connection config
