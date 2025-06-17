@@ -1,16 +1,17 @@
 import { callGemini } from "../../services/genai.service.js";
-import { Pool } from 'pg';
+import { pool } from '../../config/db.js';
+//import { Pool } from 'pg';
 
 
 // PostgreSQL connection config
-const pool = new Pool({
-  user: 'ai4p-user',
-  host: '34.44.147.36',
-  database: 'ai4p-db',
-  password: '$21RJ}{)c?CD<D<i',
-  //port: 5432,
-  //ssl: true // if using Cloud SQL over public IP
-});
+// const pool = new Pool({
+//   user: 'ai4p-user',
+//   host: '34.44.147.36',
+//   database: 'ai4p-db',
+//   password: '$21RJ}{)c?CD<D<i',
+//   //port: 5432,
+//   //ssl: true // if using Cloud SQL over public IP
+// });
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
