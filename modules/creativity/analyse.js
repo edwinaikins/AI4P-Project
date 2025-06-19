@@ -46,7 +46,7 @@ function parseIdeaTextToObject(ideaText) {
 }
 
 // Add a new fully fledged idea to the database and return only the inserted ID
-async function insertNewIdea(parsedIdea, evaluationResults) {
+async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
   const {
     idea_title,
     problem_statement,
@@ -68,6 +68,7 @@ async function insertNewIdea(parsedIdea, evaluationResults) {
     cluster_id,
     embedding
   } = evaluationResults;
+
 
   const created_at = new Date(); // Current timestamp
   const updated_at = new Date();
@@ -117,6 +118,7 @@ async function insertNewIdea(parsedIdea, evaluationResults) {
     idea_cluster,
     cluster_id,
     embedding,
+    challenge,
     created_at,
     updated_at
   ];
@@ -491,7 +493,7 @@ export async function runClarityandCoherenceAnalysis(new_idea){
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runFullAIdeaEvaluation(new_idea) {
+export async function runFullAIdeaEvaluation(new_idea, challenge) {
   try {
     const [
       clarity,
@@ -516,7 +518,7 @@ export async function runFullAIdeaEvaluation(new_idea) {
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
     // 4. Insert into DB (returns inserted ID)
-    const idea_id = await insertNewIdea(parsedIdea, evaluationResults);
+    const idea_id = await insertNewIdea(parsedIdea, challenge, evaluationResults);
 
     // 5. Return both evaluation + inserted idea_id
     // return {

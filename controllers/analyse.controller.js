@@ -100,14 +100,14 @@ export const analyseClarityandCoherence = async (req, res) => {
 }
 
 export const analyseFullIdea = async (req, res) => {
-  const { new_idea } = req.body;
+  const { new_idea, challenge } = req.body;
 
   if (typeof new_idea !== 'string' || new_idea.trim() === '') {
     return res.status(400).json({ error: 'Invalid or empty idea provided.' });
   }
 
   try {
-    const result = await runFullAIdeaEvaluation(new_idea);
+    const result = await runFullAIdeaEvaluation(new_idea, challenge);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Server or model error', details: err.message });
