@@ -6,7 +6,7 @@ const router = Router();
 const upload = multer({ dest: 'uploads/' });
 
 router.post('/analysecreativity', analyseCreativity);
-router.post('/analysecreativityidea', analyseCreativityIdea),
+router.post('/analysecreativeidea', analyseCreativityIdea),
 router.post('/analysetechnicalfeasibility', analyseTechnicalFeasibility);
 router.post('/analyseimpactassessment', analyseImpactAssessment);
 router.post('/analyseethicalevaluation', analyseEthicalEvaluation);
