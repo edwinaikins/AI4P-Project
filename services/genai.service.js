@@ -45,7 +45,7 @@ export async function callGemini(systemPrompt, userInput) {
     }
 
     const fullText = resultChunks.join('');
-    console.log("🧾 Full response:", fullText);
+    //console.log("🧾 Full response:", fullText);
 
     const jsonStart = fullText.indexOf('{');
     const jsonEnd = fullText.lastIndexOf('}');
