@@ -9,8 +9,10 @@ const ai = new GoogleGenAI({
 
 const generationConfig = {
   temperature: 0.2,
-  maxOutputTokens: 65535,
-  topP: 1,
+  //maxOutputTokens: 65535,
+  maxOutputTokens: 2048, // optimize
+  //topP: 1,
+  topP: 0.9, // tune for faster convergence
   seed: 0,
   safetySettings: [
     { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'OFF' },
