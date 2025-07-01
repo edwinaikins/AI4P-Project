@@ -9,7 +9,7 @@ const ai = new GoogleGenAI({
 
 const generationConfig = {
   temperature: 0.2,
-  maxOutputTokens: 65535,
+  maxOutputTokens: 8192, //65535,
   topP: 1,
   seed: 0,
   safetySettings: [
