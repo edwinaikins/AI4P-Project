@@ -1,6 +1,5 @@
 import { callGemini } from "../../services/genai.service.js";
-import { pool } from '../../config/db.js';
-
+import { pool } from "../../config/db.js";
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
@@ -13,14 +12,14 @@ function formatIdeaRowAsObject(row) {
     "Key Features/Functionality": row.key_features || [],
     "Technical Requirements (Optional)": row.technical_requirements || [],
     "Team (Optional)": row.team || "",
-    "Keywords/Tags": row.keywords || []
+    "Keywords/Tags": row.keywords || [],
   };
 
   return {
     idea_id: row.id,
     idea_text: JSON.stringify(ideaTextObject), // Don't escape quotes; let JSON.stringify handle that
     embedding: Array.isArray(row.embedding) ? row.embedding.slice(0, 128) : [],
-    cluster_id: parseInt(row.cluster_id)
+    cluster_id: parseInt(row.cluster_id),
   };
 }
 
@@ -35,9 +34,10 @@ function parseIdeaTextToObject(ideaText) {
       proposed_ai_solution: ideaObject["Proposed AI Solution"] || "",
       potential_impact: ideaObject["Potential Impact"] || "",
       key_features: ideaObject["Key Features/Functionality"] || [],
-      technical_requirements: ideaObject["Technical Requirements (Optional)"] || [],
+      technical_requirements:
+        ideaObject["Technical Requirements (Optional)"] || [],
       team: ideaObject["Team (Optional)"] || "",
-      keywords: ideaObject["Keywords/Tags"] || []
+      keywords: ideaObject["Keywords/Tags"] || [],
     };
   } catch (err) {
     console.error("Failed to parse idea_text:", err);
@@ -55,7 +55,7 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
     key_features,
     technical_requirements,
     team,
-    keywords
+    keywords,
   } = parsedIdea;
 
   const {
@@ -66,9 +66,8 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
     idea_category,
     idea_cluster,
     cluster_id,
-    embedding
+    embedding,
   } = evaluationResults;
-
 
   const created_at = new Date(); // Current timestamp
   const updated_at = new Date();
@@ -121,7 +120,7 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
     embedding,
     challenge,
     created_at,
-    updated_at
+    updated_at,
   ];
 
   try {
@@ -135,12 +134,8 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
 
 // Add a new basic idea to the database
 async function insertNewBasicIdea(new_idea, similarityResults) {
-  const {
-    feasibility_score,
-    idea_category,
-    idea_cluster,
-    most_similar_idea
-  } = similarityResults;
+  const { feasibility_score, idea_category, idea_cluster, most_similar_idea } =
+    similarityResults;
   const created_at = new Date(); // Current timestamp
 
   const query = `
@@ -164,27 +159,27 @@ async function insertNewBasicIdea(new_idea, similarityResults) {
     idea_category,
     idea_cluster,
     most_similar_idea?.idea_id || null,
-    created_at
+    created_at,
   ];
 
   try {
     const { rows } = await pool.query(query, values);
     return {
-      status: 'success',
-      idea_id: rows[0].id
+      status: "success",
+      idea_id: rows[0].id,
     };
   } catch (error) {
-    console.error('Error inserting basic idea:', error);
+    console.error("Error inserting basic idea:", error);
     return {
-      status: 'error',
-      message: 'Database insert failed',
-      details: error.message
+      status: "error",
+      message: "Database insert failed",
+      details: error.message,
     };
   }
 }
 
-// Fetch existing ideas with only required fields
-async function fetchExistingIdeas(limit = 50) {
+// Fetch existing ideas with only required fields for creativity analysis
+async function fetchExistingIdeas() {
   try {
     const { rows } = await pool.query(`
       SELECT id, idea_title, problem_statement, proposed_ai_solution,
@@ -192,19 +187,163 @@ async function fetchExistingIdeas(limit = 50) {
       team, keywords, embedding, cluster_id
       FROM ideas
       WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
-      LIMIT $1
-    `, [limit]);
+    `);
 
     // Format the results as expected
     const existing_ideas = rows.map(formatIdeaRowAsObject);
 
     return existing_ideas;
   } catch (error) {
-    console.error('Error fetching existing ideas:', error);
+    console.error("Error fetching existing ideas:", error);
     throw error;
   }
 }
 
+// Fetch existing ideas with these fields (id, embedding, cluster_id, feasibility_score, idea_category, idea_cluster, impact_score, ethical_score, clarity_score) for stack ranking based on challenge as a parameter
+async function fetchExistingIdeasForStackRanking(challenge) {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, embedding, cluster_id, feasibility_score, idea_category,
+      idea_cluster, impact_score, ethical_score, clarity_score
+      FROM ideas
+      WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
+      AND challenge = $1
+      ORDER BY created_at DESC
+    `, [challenge]);
+
+    // Format the results as expected
+    const existing_ideas = rows.map((row) => ({
+      id: row.id,
+      embedding: row.embedding || [],
+      cluster_id: row.cluster_id,
+      feasibility_score: row.feasibility_score,
+      idea_category: row.idea_category,
+      idea_cluster: row.idea_cluster,
+      impact_score: row.impact_score,
+      ethical_score: row.ethical_score,
+      clarity_score: row.clarity_score,
+    }));
+
+    return existing_ideas;
+  } catch (error) {
+    console.error("Error fetching existing ideas for stack ranking:", error);
+    throw error;
+  }
+}
+
+// Update existing ideas with a new rank field (integer), runStackRanking will output an array of objects with id and rank, we'll loop through the array and update each idea in the database
+export async function updateIdeaRanks(ideasWithRanks) {
+  try {
+    const updateQueries = ideasWithRanks.map((idea) => {
+      return pool.query(
+        `UPDATE ideas SET rank = $1 WHERE id = $2`,
+        [idea.rank, idea.id]
+      );
+    });
+
+    // Execute all update queries in parallel
+    await Promise.all(updateQueries);
+    return { status: "success", message: "Ranks updated successfully." };
+  } catch (error) {
+    console.error("Error updating idea ranks:", error);
+    return {
+      status: "error",
+      message: "Failed to update ranks.",
+      details: error.message,
+    };
+  }
+}
+
+export async function StackRanking(challenge) {
+  const systemPrompt = `You are **IdeaRankerGPT**, a senior AI solution architect specialized in prioritizing ideas. Given a batch of ideas, follow the steps below in order:
+
+INPUT VALIDATION  
+Before proceeding, ensure that the inputs conform to the following:  
+- The input is a JSON array.  
+- Each element in the array is an object containing exactly these keys:  
+  - "id" (string)  
+  - "cluster_id" (integer from 0 to k‑1)  
+  - "idea_category" (string)  
+  - "idea_cluster" (string)  
+  - "embedding" (array of numbers, length exactly 128)  
+  - "feasibility_score" (number 0–10)  
+  - "clarity_score" (number 0–10)  
+  - "impact_score" (number 0–10)  
+  - "ethics_score" (number 0–10)  
+
+If validation fails, return a JSON object with "error" and a descriptive message.
+
+NORMALIZATION  
+For each cluster (grouped by "cluster_id"), normalize the four numeric scores (feasibility_score, clarity_score, impact_score, ethics_score) to a 0–1 scale using min‑max normalization within that cluster.
+
+COMPOSITE SCORE COMPUTATION  
+Compute a weighted composite score for each idea as follows:  
+\`\`\`
+composite_score = (
+  feasibility_score_norm * 0.20 +
+  clarity_score_norm    * 0.10 +
+  impact_score_norm     * 0.40 +
+  ethics_score_norm     * 0.30
+) * 10
+\`\`\`  
+Round to two decimal places.
+
+SORTING  
+Sort the list of ideas in descending order of composite_score.
+
+FINAL OUTPUT FORMAT  
+Return **only** valid JSON (no commentary) in this exact structure:  
+\`\`\`json
+[
+  {
+    "id": "<string>",
+    "rank": <integer>     // 1 = highest composite_score, 2 = next, etc.
+  },
+  ...
+]
+\`\`\`
+
+Example Input:  
+\`\`\`json
+[
+  {
+    "id": "idea_001",
+    "cluster_id": 0,
+    "idea_category": "Health",
+    "idea_cluster": "Telemedicine",
+    "embedding": [0.12, -0.03, …],  
+    "feasibility_score": 7,
+    "clarity_score": 8,
+    "impact_score": 9,
+    "ethics_score": 8
+  },
+  {
+    "id": "idea_002",
+    "cluster_id": 1,
+    "idea_category": "Education",
+    "idea_cluster": "EdTech",
+    "embedding": [0.05, 0.15, …],
+    "feasibility_score": 6,
+    "clarity_score": 7,
+    "impact_score": 8,
+    "ethics_score": 9
+  }
+]
+\`\`\`
+
+Expected Output:  
+\`\`\`json
+[
+  { "id": "idea_001", "rank": 1 },
+  { "id": "idea_002", "rank": 2 }
+]
+\`\`\`
+`;
+  const existing_ideas = await fetchExistingIdeasForStackRanking(challenge);
+  const userInput = JSON.stringify({ existing_ideas });
+
+  return callGemini(systemPrompt, userInput);
+}
 
 export async function runCreativityAnalysis(new_idea) {
   const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow the steps below in order:
@@ -282,11 +421,11 @@ export async function runCreativityAnalysisandInsertIdea(new_idea) {
     // return result; // { status: 'success', idea_id: '...' }
     return similarityResults;
   } catch (err) {
-    console.error('Error in analyzeAndInsertNewIdea:', err);
+    console.error("Error in analyzeAndInsertNewIdea:", err);
     return {
-      status: 'error',
-      message: 'Failed to analyze or insert idea.',
-      details: err.message
+      status: "error",
+      message: "Failed to analyze or insert idea.",
+      details: err.message,
     };
   }
 }
@@ -360,7 +499,7 @@ export async function runTechnicalFeasibiltyAnalysis(new_idea) {
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runImpactAssessmentAnalysis(new_idea){
+export async function runImpactAssessmentAnalysis(new_idea) {
   const systemPrompt = `You are an expert in evaluating the potential impact of AI projects.
   Your job is to analyze the idea and assess **how significant and positive its impact could be** if implemented. Focus on potential improvements to human life, social systems, the environment, or peace-building.
   For each given idea, perform the following steps in order:  
@@ -402,7 +541,7 @@ export async function runImpactAssessmentAnalysis(new_idea){
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runEthicalEvaluationAnalysis(new_idea){
+export async function runEthicalEvaluationAnalysis(new_idea) {
   const systemPrompt = `You are an AI ethics advisor assessing the ethical risks of proposed AI projects.
   Your job is to identify the **presence of potential ethical concerns**, such as:
   Bias or discrimination
@@ -449,7 +588,7 @@ export async function runEthicalEvaluationAnalysis(new_idea){
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runClarityandCoherenceAnalysis(new_idea){
+export async function runClarityandCoherenceAnalysis(new_idea) {
   const systemPrompt = `You are an expert evaluator in assessing the clarity and coherence of AI solution ideas. For each given idea, perform the following steps in order:
   Clarity Scoring
   Based on linguistic quality, grammar, completeness, and conceptual coherence, assign a clarity_score from 0–100:
@@ -496,16 +635,11 @@ export async function runClarityandCoherenceAnalysis(new_idea){
 
 export async function runFullAIdeaEvaluation(new_idea, challenge) {
   try {
-    const [
-      clarity,
-      impact,
-      ethical,
-      feasibility
-    ] = await Promise.all([
+    const [clarity, impact, ethical, feasibility] = await Promise.all([
       runClarityandCoherenceAnalysis(new_idea),
       runImpactAssessmentAnalysis(new_idea),
       runEthicalEvaluationAnalysis(new_idea),
-      runTechnicalFeasibiltyAnalysis(new_idea)
+      runTechnicalFeasibiltyAnalysis(new_idea),
     ]);
 
     // Merge all outputs into one JSON
@@ -513,13 +647,17 @@ export async function runFullAIdeaEvaluation(new_idea, challenge) {
       ...clarity,
       ...impact,
       ...ethical,
-      ...feasibility
+      ...feasibility,
     };
 
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
     // 4. Insert into DB (returns inserted ID)
-    const idea_id = await insertNewIdea(parsedIdea, challenge, evaluationResults);
+    const idea_id = await insertNewIdea(
+      parsedIdea,
+      challenge,
+      evaluationResults
+    );
 
     // 5. Return both evaluation + inserted idea_id
     // return {
@@ -528,23 +666,21 @@ export async function runFullAIdeaEvaluation(new_idea, challenge) {
     // };
 
     return {
-      status: 'success',
-      message: 'Idea evaluated and inserted successfully.'
+      status: "success",
+      message: "Idea evaluated and inserted successfully.",
     };
-
   } catch (err) {
-    console.error('Error during full AI idea evaluation:', err);
+    console.error("Error during full AI idea evaluation:", err);
     //throw err;
     return {
-      status: 'error',
-      message: 'Something went wrong during idea evaluation or insertion.',
-      error: err.message
-    }
+      status: "error",
+      message: "Something went wrong during idea evaluation or insertion.",
+      error: err.message,
+    };
   }
 }
 
-
-export async function runExtractIdeaAnalysis(docstext){
+export async function runExtractIdeaAnalysis(docstext) {
   const systemPrompt = ` You are an expert AI idea analyst. You will be given the full text of a document describing a proposed AI idea. Your task is to read and understand the document, then automatically extract and summarize its key AI‑specific elements into a structured JSON object.
   INSTRUCTIONS:
   1. Read the provided text in its entirety.
@@ -573,8 +709,26 @@ export async function runExtractIdeaAnalysis(docstext){
     "Keywords": ["<string>", …]
   }
   \`\`\`  
-  `
+  `;
 
-  const userInput = JSON.stringify({ document: docstext});
+  const userInput = JSON.stringify({ document: docstext });
   return callGemini(systemPrompt, userInput);
+}
+
+export async function runStackRanking(challenge) {
+  try {
+    const rankingResults = await StackRanking(challenge);
+    if (rankingResults.error) {
+      throw new Error(rankingResults.error);
+    }
+    await updateIdeaRanks(rankingResults);
+    return {status: "success", message: "Stack ranking completed successfully."};
+  } catch (error) {
+    console.error("Error in runStackRanking:", error);
+    return {
+      status: "error",
+      message: "Failed to run stack ranking.",
+      details: error.message,
+    };
+  }
 }
