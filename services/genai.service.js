@@ -9,7 +9,7 @@ const ai = new GoogleGenAI({
 
 const generationConfig = {
   temperature: 0.2,
-  maxOutputTokens: 65535,
+  maxOutputTokens: 8192, //65535,
   topP: 1,
   seed: 0,
   safetySettings: [
@@ -43,7 +43,7 @@ export async function callGemini(systemPrompt, userInput) {
     }
 
     const fullText = resultChunks.join('');
-    console.log("🧾 Full response:", fullText);
+    //console.log("🧾 Full response:", fullText);
 
     const jsonStart = fullText.indexOf('{');
     const jsonEnd = fullText.lastIndexOf('}');
