@@ -635,12 +635,22 @@ export async function runClarityandCoherenceAnalysis(new_idea) {
 
 export async function runFullAIdeaEvaluation(new_idea, challenge) {
   try {
-    const [clarity, impact, ethical, feasibility] = await Promise.all([
-      runClarityandCoherenceAnalysis(new_idea),
-      runImpactAssessmentAnalysis(new_idea),
-      runEthicalEvaluationAnalysis(new_idea),
-      runTechnicalFeasibiltyAnalysis(new_idea),
-    ]);
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const clarity = await runClarityandCoherenceAnalysis(new_idea);
+    await delay(500); // 500ms delay
+    const impact = await runImpactAssessmentAnalysis(new_idea);
+    await delay(500);
+    const ethical = await runEthicalEvaluationAnalysis(new_idea);
+    await delay(500);
+    const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+    await delay(500);
+    
+    // const [clarity, impact, ethical, feasibility] = await Promise.all([
+    //   runClarityandCoherenceAnalysis(new_idea),
+    //   runImpactAssessmentAnalysis(new_idea),
+    //   runEthicalEvaluationAnalysis(new_idea),
+    //   runTechnicalFeasibiltyAnalysis(new_idea),
+    // ]);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
