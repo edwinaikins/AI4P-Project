@@ -368,8 +368,8 @@ export async function runCreativityAnalysis(new_idea) {
    6. Filter existing ideas to the same cluster_id.
    7. Remove duplicates: Exclude ideas with >95% text similarity (case-insensitive) to new idea.
    8. For remaining ideas:
-     a. Calculate cosine similarity: 𝑠𝑖𝑚=𝑑𝑜𝑡(𝐴,𝐵)/(‖𝐴‖‖𝐵‖)
-     b. Convert to 0-100 scale: 𝑠𝑐𝑜𝑟𝑒=𝑟𝑜𝑢𝑛𝑑((𝑠𝑖𝑚+1)×50, 2)
+     a. Calculate cosine similarity: sim = dot(A,B) / (norm(A) * norm(B))
+     b. Convert to 0-100 scale: score = round((sim + 1) * 50, 2)
    9. If no ideas remain, return: 
    "most_similar_idea": null
    10. Else, return the top match ONLY if its score ≥ 20. Otherwise, return null.
