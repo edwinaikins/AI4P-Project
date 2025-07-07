@@ -346,64 +346,110 @@ Expected Output:
 }
 
 export async function runCreativityAnalysis(new_idea) {
-  const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow the steps below in order:
-INPUT VALIDATION
-Before proceeding with the steps below, ensure that the INPUTS conform to the following:
-The "New Idea" must be a string.
-The "Existing Ideas" must be a list of dictionaries. Each dictionary must contain the keys "idea_id" (string), "idea_text" (string), "embedding" (a list of floats), and "cluster_id" (integer).
-The "embedding" must be a list of floats (fixed length exactly 128).
-The "cluster_id" must be an integer.
-Vector Embedding
-Generate a fixed-length vector embedding for the user idea using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).
-Include this as an array of floats under the key "embedding".
-Cluster Assignment
-Using a pre-trained K-Means model with k centroids (provided separately), assign the new idea’s embedding to its nearest cluster.
-Return "cluster_id" as an integer from 0 to k-1.
-Technical Feasibility Scoring
-Evaluate the plausibility of the idea based on current off-the-shelf AI tools, cloud services, and engineering practices.
-Assign a "feasibility_score" from 0–100:
-0–30: Not technically feasible (speculative or unproven tech)
-31–70: Partially feasible (requires custom R&D or complex engineering)
-71–100: Technically feasible (can be implemented today)
-Categorization
-Choose a broad "idea_category" such as: Education, Finance, Health, Environment, Governance, Logistics, Media, Agriculture, etc.
-Choose a specific "idea_cluster" (subdomain), such as: AI Tutoring, Fraud Detection, Wildfire Prevention, Precision Farming, Clinical Diagnostics, etc.
-Similarity Scoring (within same cluster)
-Given the list existing ideas, where each idea includes:
-{
-"idea_id": "<string>",
-"idea_text": "<string>",
-"embedding": [<float>, ...],
-"cluster_id": <integer>
-}
-Perform the following:
-Filter to only ideas with the same cluster_id as the new idea.
-For each, calculate cosine similarity with the new idea embedding:
-similarity = dot(A, B) / (norm(A) * norm(B))​
-Convert similarity score to 0–100 scale.
-Return only the single most similar idea, each in this format:
-{
- "most_similar_idea": {
-  "idea_id": "<string>",
-  "similarity_score": <float>,
-  "idea_text": "<string>"
- }
-}
-FINAL OUTPUT FORMAT
-Return only valid JSON without any other text:
-{
-"feasibility_score": <integer>,
-"idea_category": "<string>",
-"idea_cluster": "<string>",
-"cluster_id": <integer>,
-"embedding": [<float>, <float>, ...],
-"most_similar_idea": {
-"idea_id": "<string>",
-"similarity_score": <float>,
-"idea_text": "<string>"
-},
-}
-`;
+  const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow these steps:
+  INPUT VALIDATION
+  - Verify "New Idea" is a string.
+  - Verify "Existing Ideas" is a list of dictionaries with keys: 
+  "idea_id" (string), "idea_text" (string), "embedding" (128 floats), "cluster_id" (integer).
+  
+  Vector Embedding
+  1. Generate a 128-dim embedding for the new idea using `textembedding-gecko@001`.
+  
+  Cluster Assignment
+  2. Assign the new idea to the nearest cluster using the pre-trained K-Means model. 
+   Output "cluster_id" (integer 0 to k-1).
+   
+   Technical Feasibility Scoring
+   3. Assign "feasibility_score" (0-100):
+   - 0-30: Not technically feasible
+   - 31-70: Partially feasible
+   - 71-100: Technically feasible
+   
+   Categorization
+   4. Assign "idea_category" (e.g., Finance, Health).
+   5. Assign "idea_cluster" (e.g., Fraud Detection, Clinical Diagnostics).
+   
+   Similarity Scoring
+   6. Filter existing ideas to the same cluster_id.
+   7. Remove duplicates: Exclude ideas with >95% text similarity (case-insensitive) to new idea.
+   8. For remaining ideas:
+     a. Calculate cosine similarity: 𝑠𝑖𝑚=𝑑𝑜𝑡(𝐴,𝐵)/(‖𝐴‖‖𝐵‖)
+     b. Convert to 0-100 scale: 𝑠𝑐𝑜𝑟𝑒=𝑟𝑜𝑢𝑛𝑑((𝑠𝑖𝑚+1)×50, 2)
+   9. If no ideas remain, return: 
+   "most_similar_idea": null
+   10. Else, return the top match ONLY if its score ≥ 20. Otherwise, return null.
+   
+   FINAL OUTPUT (JSON ONLY)
+   {
+     "feasibility_score": <int>,
+     "idea_category": "<string>",
+     "idea_cluster": "<string>",
+     "cluster_id": <int>,
+     "embedding": [<float>, ...], // 128 floats
+     "most_similar_idea": {
+       "idea_id": "<string> | null",
+       "similarity_score": <float> | null, // 0-100
+       "idea_text": "<string> | null"
+       }
+  }`;
+//   const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow the steps below in order:
+// INPUT VALIDATION
+// Before proceeding with the steps below, ensure that the INPUTS conform to the following:
+// The "New Idea" must be a string.
+// The "Existing Ideas" must be a list of dictionaries. Each dictionary must contain the keys "idea_id" (string), "idea_text" (string), "embedding" (a list of floats), and "cluster_id" (integer).
+// The "embedding" must be a list of floats (fixed length exactly 128).
+// The "cluster_id" must be an integer.
+// Vector Embedding
+// Generate a fixed-length vector embedding for the user idea using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).
+// Include this as an array of floats under the key "embedding".
+// Cluster Assignment
+// Using a pre-trained K-Means model with k centroids (provided separately), assign the new idea’s embedding to its nearest cluster.
+// Return "cluster_id" as an integer from 0 to k-1.
+// Technical Feasibility Scoring
+// Evaluate the plausibility of the idea based on current off-the-shelf AI tools, cloud services, and engineering practices.
+// Assign a "feasibility_score" from 0–100:
+// 0–30: Not technically feasible (speculative or unproven tech)
+// 31–70: Partially feasible (requires custom R&D or complex engineering)
+// 71–100: Technically feasible (can be implemented today)
+// Categorization
+// Choose a broad "idea_category" such as: Education, Finance, Health, Environment, Governance, Logistics, Media, Agriculture, etc.
+// Choose a specific "idea_cluster" (subdomain), such as: AI Tutoring, Fraud Detection, Wildfire Prevention, Precision Farming, Clinical Diagnostics, etc.
+// Similarity Scoring (within same cluster)
+// Given the list existing ideas, where each idea includes:
+// {
+// "idea_id": "<string>",
+// "idea_text": "<string>",
+// "embedding": [<float>, ...],
+// "cluster_id": <integer>
+// }
+// Perform the following:
+// Filter to only ideas with the same cluster_id as the new idea.
+// For each, calculate cosine similarity with the new idea embedding:
+// similarity = dot(A, B) / (norm(A) * norm(B))​
+// Convert similarity score to 0–100 scale.
+// Return only the single most similar idea, each in this format:
+// {
+//  "most_similar_idea": {
+//   "idea_id": "<string>",
+//   "similarity_score": <float>,
+//   "idea_text": "<string>"
+//  }
+// }
+// FINAL OUTPUT FORMAT
+// Return only valid JSON without any other text:
+// {
+// "feasibility_score": <integer>,
+// "idea_category": "<string>",
+// "idea_cluster": "<string>",
+// "cluster_id": <integer>,
+// "embedding": [<float>, <float>, ...],
+// "most_similar_idea": {
+// "idea_id": "<string>",
+// "similarity_score": <float>,
+// "idea_text": "<string>"
+// },
+// }
+// `;
   const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
