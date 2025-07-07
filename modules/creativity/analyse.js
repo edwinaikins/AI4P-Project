@@ -637,13 +637,13 @@ export async function runFullAIdeaEvaluation(new_idea, challenge) {
   try {
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
-    await delay(500); // 500ms delay
+    await delay(200); // 500ms delay
     const impact = await runImpactAssessmentAnalysis(new_idea);
-    await delay(500);
+    await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
-    await delay(500);
+    await delay(200);
     const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-    await delay(500);
+    
     
     // const [clarity, impact, ethical, feasibility] = await Promise.all([
     //   runClarityandCoherenceAnalysis(new_idea),
