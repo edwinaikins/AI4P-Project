@@ -71,6 +71,7 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
 
   const created_at = new Date(); // Current timestamp
   const updated_at = new Date();
+  const status = "Under Review";
 
   const query = `
     INSERT INTO ideas (
@@ -92,11 +93,12 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
       embedding,
       challenge,
       created_at,
-      updated_at
+      updated_at,
+      status
     )
     VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8,
-      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
     )
     RETURNING id
   `;
