@@ -46,7 +46,7 @@ function parseIdeaTextToObject(ideaText) {
 }
 
 // Add a new fully fledged idea to the database and return only the inserted ID
-async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
+async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id) {
   const {
     idea_title,
     problem_statement,
@@ -72,6 +72,7 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
   const created_at = new Date(); // Current timestamp
   const updated_at = new Date();
   const status = "Under Review";
+  const isdraft = "false";
 
   const query = `
     INSERT INTO ideas (
@@ -92,13 +93,15 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
       cluster_id,
       embedding,
       challenge,
+      author_id,
       created_at,
       updated_at,
-      status
+      status,
+      is_draft
     )
     VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8,
-      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
     )
     RETURNING id
   `;
@@ -121,8 +124,11 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults) {
     cluster_id,
     embedding,
     challenge,
+    author_id,
     created_at,
     updated_at,
+    status,
+    isdraft
   ];
 
   try {
@@ -685,7 +691,7 @@ export async function runClarityandCoherenceAnalysis(new_idea) {
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runFullAIdeaEvaluation(new_idea, challenge) {
+export async function runFullAIdeaEvaluation(new_idea, challenge, author_id) {
   try {
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
@@ -718,7 +724,8 @@ export async function runFullAIdeaEvaluation(new_idea, challenge) {
     const idea_id = await insertNewIdea(
       parsedIdea,
       challenge,
-      evaluationResults
+      evaluationResults,
+      author_id
     );
 
     // 5. Return both evaluation + inserted idea_id
