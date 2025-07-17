@@ -97,7 +97,7 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id
       created_at,
       updated_at,
       status,
-      is_draft
+      isdraft
     )
     VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8,
