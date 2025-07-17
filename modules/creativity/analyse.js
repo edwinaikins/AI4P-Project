@@ -709,6 +709,7 @@ export async function runFullAIdeaEvaluation(new_idea, challenge, author_id) {
     //   runEthicalEvaluationAnalysis(new_idea),
     //   runTechnicalFeasibiltyAnalysis(new_idea),
     // ]);
+    console.log(author_id);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
