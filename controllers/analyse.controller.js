@@ -107,7 +107,7 @@ export const analyseFullIdea = async (req, res) => {
   }
 
   try {
-    const result = await runFullAIdeaEvaluation(new_idea, challenge);
+    const result = await runFullAIdeaEvaluation(new_idea, challenge, author_id);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Server or model error', details: err.message });
