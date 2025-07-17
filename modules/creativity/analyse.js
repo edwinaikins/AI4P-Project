@@ -46,7 +46,101 @@ function parseIdeaTextToObject(ideaText) {
 }
 
 // Add a new fully fledged idea to the database and return only the inserted ID
-async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id) {
+// async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id) {
+//   const {
+//     idea_title,
+//     problem_statement,
+//     proposed_ai_solution,
+//     potential_impact,
+//     key_features,
+//     technical_requirements,
+//     team,
+//     keywords,
+//   } = parsedIdea;
+
+//   const {
+//     clarity_score,
+//     impact_score,
+//     ethical_score,
+//     feasibility_score,
+//     idea_category,
+//     idea_cluster,
+//     cluster_id,
+//     embedding,
+//   } = evaluationResults;
+
+//   const created_at = new Date(); // Current timestamp
+//   const updated_at = new Date();
+//   const status = "Under Review";
+//   const isdraft = "false";
+
+//   const query = `
+//     INSERT INTO ideas (
+//       idea_title,
+//       problem_statement,
+//       proposed_ai_solution,
+//       potential_impact,
+//       key_features,
+//       technical_requirements,
+//       team,
+//       keywords,
+//       clarity_score,
+//       impact_score,
+//       ethical_score,
+//       feasibility_score,
+//       idea_category,
+//       idea_cluster,
+//       cluster_id,
+//       embedding,
+//       challenge,
+//       author_id,
+//       created_at,
+//       updated_at,
+//       status,
+//       isdraft
+//     )
+//     VALUES (
+//       $1, $2, $3, $4, $5, $6, $7, $8,
+//       $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+//     )
+//     RETURNING id
+//   `;
+
+//   const values = [
+//     idea_title,
+//     problem_statement,
+//     proposed_ai_solution,
+//     potential_impact,
+//     key_features,
+//     technical_requirements,
+//     team,
+//     keywords,
+//     clarity_score,
+//     impact_score,
+//     ethical_score,
+//     feasibility_score,
+//     idea_category,
+//     idea_cluster,
+//     cluster_id,
+//     embedding,
+//     challenge,
+//     author_id,
+//     created_at,
+//     updated_at,
+//     status,
+//     isdraft
+//   ];
+
+//   try {
+//     const { rows } = await pool.query(query, values);
+//     return rows[0].id;
+//   } catch (err) {
+//     console.error("Failed to insert idea:", err);
+//     throw err;
+//   }
+// }
+
+async function insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, author_id) {
   const {
     idea_title,
     problem_statement,
@@ -69,13 +163,45 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id
     embedding,
   } = evaluationResults;
 
-  const created_at = new Date(); // Current timestamp
-  const updated_at = new Date();
-  const status = "Under Review";
-  const isdraft = "false";
+  if (!idea_id) {
+    // Insert new idea
+    const created_at = new Date();
+    const updated_at = new Date();
+    const status = "Under Review";
+    const isdraft = "false";
 
-  const query = `
-    INSERT INTO ideas (
+    const insertQuery = `
+      INSERT INTO ideas (
+        idea_title,
+        problem_statement,
+        proposed_ai_solution,
+        potential_impact,
+        key_features,
+        technical_requirements,
+        team,
+        keywords,
+        clarity_score,
+        impact_score,
+        ethical_score,
+        feasibility_score,
+        idea_category,
+        idea_cluster,
+        cluster_id,
+        embedding,
+        challenge,
+        author_id,
+        created_at,
+        updated_at,
+        status,
+        isdraft
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8,
+        $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+      )
+    `;
+
+    const insertValues = [
       idea_title,
       problem_statement,
       proposed_ai_solution,
@@ -98,47 +224,80 @@ async function insertNewIdea(parsedIdea, challenge, evaluationResults, author_id
       updated_at,
       status,
       isdraft
-    )
-    VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8,
-      $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
-    )
-    RETURNING id
-  `;
+    ];
 
-  const values = [
-    idea_title,
-    problem_statement,
-    proposed_ai_solution,
-    potential_impact,
-    key_features,
-    technical_requirements,
-    team,
-    keywords,
-    clarity_score,
-    impact_score,
-    ethical_score,
-    feasibility_score,
-    idea_category,
-    idea_cluster,
-    cluster_id,
-    embedding,
-    challenge,
-    author_id,
-    created_at,
-    updated_at,
-    status,
-    isdraft
-  ];
+    try {
+      await pool.query(insertQuery, insertValues);
+      return "success";
+    } catch (err) {
+      console.error("Failed to insert idea:", err.message);
+      return "failed";
+    }
+  } else {
+    // Update existing idea
+    const updated_at = new Date();
 
-  try {
-    const { rows } = await pool.query(query, values);
-    return rows[0].id;
-  } catch (err) {
-    console.error("Failed to insert idea:", err);
-    throw err;
+    const updateQuery = `
+      UPDATE ideas
+      SET
+        idea_title = $1,
+        problem_statement = $2,
+        proposed_ai_solution = $3,
+        potential_impact = $4,
+        key_features = $5,
+        technical_requirements = $6,
+        team = $7,
+        keywords = $8,
+        clarity_score = $9,
+        impact_score = $10,
+        ethical_score = $11,
+        feasibility_score = $12,
+        idea_category = $13,
+        idea_cluster = $14,
+        cluster_id = $15,
+        embedding = $16,
+        challenge = $17,
+        author_id = $18,
+        updated_at = $19
+      WHERE id = $20
+    `;
+
+    const updateValues = [
+      idea_title,
+      problem_statement,
+      proposed_ai_solution,
+      potential_impact,
+      key_features,
+      technical_requirements,
+      team,
+      keywords,
+      clarity_score,
+      impact_score,
+      ethical_score,
+      feasibility_score,
+      idea_category,
+      idea_cluster,
+      cluster_id,
+      embedding,
+      challenge,
+      author_id,
+      updated_at,
+      idea_id
+    ];
+
+    try {
+      const result = await pool.query(updateQuery, updateValues);
+      if (result.rowCount === 0) {
+        return "success";
+      }
+      // Success, implicitly returns undefined
+    } catch (err) {
+      console.error("Failed to update idea:", err.message);
+      return "failed";
+    }
   }
 }
+
 
 // Add a new basic idea to the database
 async function insertNewBasicIdea(new_idea, similarityResults) {
@@ -691,7 +850,7 @@ export async function runClarityandCoherenceAnalysis(new_idea) {
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runFullAIdeaEvaluation(new_idea, challenge, author_id) {
+export async function runFullAIdeaEvaluation(new_idea, challenge, author_id, idea_id) {
   try {
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
@@ -709,8 +868,6 @@ export async function runFullAIdeaEvaluation(new_idea, challenge, author_id) {
     //   runEthicalEvaluationAnalysis(new_idea),
     //   runTechnicalFeasibiltyAnalysis(new_idea),
     // ]);
-    console.log('Author: ' + author_id);
-    console.log('Challenge: ' + challenge);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
@@ -723,23 +880,12 @@ export async function runFullAIdeaEvaluation(new_idea, challenge, author_id) {
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
     // 4. Insert into DB (returns inserted ID)
-    const idea_id = await insertNewIdea(
-      parsedIdea,
-      challenge,
-      evaluationResults,
-      author_id
-    );
-
-    // 5. Return both evaluation + inserted idea_id
-    // return {
-    //   idea_id,
-    //   ...evaluationResults
-    // };
-
+    await insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, author_id);
     return {
-      status: "success",
-      message: "Idea evaluated and inserted successfully.",
+        status: "success",
+        message: "Idea evaluated and inserted successfully.",
     };
+    
   } catch (err) {
     console.error("Error during full AI idea evaluation:", err);
     //throw err;
