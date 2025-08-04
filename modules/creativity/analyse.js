@@ -509,6 +509,7 @@ Expected Output:
   const existing_ideas = await fetchExistingIdeasForStackRanking(challenge);
   const userInput = JSON.stringify({ existing_ideas });
 
+  console.log(callGemini(systemPrompt, userInput));
   return callGemini(systemPrompt, userInput);
 }
 
