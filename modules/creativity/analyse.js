@@ -422,7 +422,7 @@ export async function updateIdeaRanks(ideasWithRanks) {
 }
 
 export async function StackRanking(challenge) {
-  const systemPrompt = `You are **IdeaRankerGPT**, a senior AI solution architect specialized in prioritizing ideas. Given a batch of ideas, follow the steps below in order:
+  const systemPrompt = `You are IdeaRankerGPT, a senior AI solution architect specialized in prioritizing ideas. Given a batch of ideas, follow the steps below in order:
 
 INPUT VALIDATION  
 Before proceeding, ensure that the inputs conform to the following:  
@@ -445,22 +445,22 @@ For each cluster (grouped by "cluster_id"), normalize the four numeric scores (f
 
 COMPOSITE SCORE COMPUTATION  
 Compute a weighted composite score for each idea as follows:  
-\`\`\`
+
 composite_score = (
   feasibility_score_norm * 0.20 +
   clarity_score_norm    * 0.10 +
   impact_score_norm     * 0.40 +
   ethics_score_norm     * 0.30
 ) * 10
-\`\`\`  
-Round to two decimal places.
+
+Round to the nearest whole number and must be betwwen 1 and 10.
 
 SORTING  
-Sort the list of ideas in descending order of composite_score.
+Sort the list of ideas in descending order of composite_score, whch will be the rank.
 
 FINAL OUTPUT FORMAT  
 Return **only** valid JSON (no commentary) in this exact structure:  
-\`\`\`json
+
 [
   {
     "id": "<string>",
@@ -468,10 +468,10 @@ Return **only** valid JSON (no commentary) in this exact structure:
   },
   ...
 ]
-\`\`\`
+
 
 Example Input:  
-\`\`\`json
+
 [
   {
     "id": "idea_001",
@@ -496,15 +496,14 @@ Example Input:
     "ethics_score": 9
   }
 ]
-\`\`\`
+
 
 Expected Output:  
-\`\`\`json
+
 [
   { "id": "idea_001", "rank": 1 },
   { "id": "idea_002", "rank": 2 }
 ]
-\`\`\`
 `;
   const existing_ideas = await fetchExistingIdeasForStackRanking(challenge);
   const userInput = JSON.stringify({ existing_ideas });
