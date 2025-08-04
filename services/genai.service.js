@@ -45,12 +45,32 @@ export async function callGemini(systemPrompt, userInput) {
     const fullText = resultChunks.join('');
     //console.log("🧾 Full response:", fullText);
 
-    const jsonStart = fullText.indexOf('{');
-    const jsonEnd = fullText.lastIndexOf('}');
-    if (jsonStart === -1 || jsonEnd === -1) throw new Error('Invalid JSON returned');
+    // const jsonStart = fullText.indexOf('{');
+    // const jsonEnd = fullText.lastIndexOf('}');
+    // if (jsonStart === -1 || jsonEnd === -1) throw new Error('Invalid JSON returned');
 
-    const json = JSON.parse(fullText.slice(jsonStart, jsonEnd + 1));
-    return json;
+    // const json = JSON.parse(fullText.slice(jsonStart, jsonEnd + 1));
+    // return json;
+
+    const start = fullText.indexOf('{') !== -1 ? fullText.indexOf('{') : fullText.indexOf('[');
+    const end = fullText.lastIndexOf('}') !== -1 ? fullText.lastIndexOf('}') : fullText.lastIndexOf(']');
+    
+    if (start === -1 || end === -1) {
+      throw new Error('No valid JSON object or array found in the response.');
+    }
+    
+    const rawJson = fullText.slice(start, end + 1).trim();
+    let parsed;
+    
+    try {
+      parsed = JSON.parse(rawJson);
+    } catch (parseErr) {
+      console.error("❌ Failed to parse JSON:", rawJson);
+      throw parseErr;
+    }
+
+    return parsed;
+
   } catch (err) {
     console.error("❌ Error in callGemini:", err);
     throw err;
