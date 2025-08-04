@@ -436,7 +436,7 @@ Before proceeding, ensure that the inputs conform to the following:
   - "feasibility_score" (number 0–10)  
   - "clarity_score" (number 0–10)  
   - "impact_score" (number 0–10)  
-  - "ethics_score" (number 0–10)  
+  - "ethical_score" (number 0–10)  
 
 If validation fails, return a JSON object with "error" and a descriptive message.
 
@@ -450,7 +450,7 @@ composite_score = (
   feasibility_score_norm * 0.20 +
   clarity_score_norm    * 0.10 +
   impact_score_norm     * 0.40 +
-  ethics_score_norm     * 0.30
+  ethical_score_norm     * 0.30
 ) * 10
 
 Round to the nearest whole number and must be betwwen 1 and 10.
@@ -482,7 +482,7 @@ Example Input:
     "feasibility_score": 7,
     "clarity_score": 8,
     "impact_score": 9,
-    "ethics_score": 8
+    "ethical_score": 8
   },
   {
     "id": "idea_002",
@@ -493,7 +493,7 @@ Example Input:
     "feasibility_score": 6,
     "clarity_score": 7,
     "impact_score": 8,
-    "ethics_score": 9
+    "ethical_score": 9
   }
 ]
 
