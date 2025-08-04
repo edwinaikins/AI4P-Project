@@ -433,10 +433,10 @@ Before proceeding, ensure that the inputs conform to the following:
   - "idea_category" (string)  
   - "idea_cluster" (string)  
   - "embedding" (array of numbers, length exactly 128)  
-  - "feasibility_score" (number 0–10)  
-  - "clarity_score" (number 0–10)  
-  - "impact_score" (number 0–10)  
-  - "ethical_score" (number 0–10)  
+  - "feasibility_score" (number 0–100)  
+  - "clarity_score" (number 0–100)  
+  - "impact_score" (number 0–100)  
+  - "ethical_score" (number 0–100)  
 
 If validation fails, return a JSON object with "error" and a descriptive message.
 
