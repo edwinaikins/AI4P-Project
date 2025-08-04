@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, StackRanking } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking } from '../modules/creativity/analyse.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
@@ -154,23 +154,6 @@ export const analyseStackRanking = async (req, res) => {
   }
   try {
     const result = await runStackRanking(challenge);
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Model or server error', details: err.message });
-  }
-};
-
-
-export const stackranking = async (req, res) => {
-  // challenge id as body
-  const { challenge } = req.body;
-
-  if (typeof challenge !== 'string' || challenge.trim() === '') {
-    return res.status(400).json({ error: 'Invalid or empty challenge ID provided.' });
-  }
-  try {
-    const result = await StackRanking(challenge);
     res.json(result);
   } catch (err) {
     console.error(err);
