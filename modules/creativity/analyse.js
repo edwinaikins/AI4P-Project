@@ -509,8 +509,8 @@ Expected Output:
   const existing_ideas = await fetchExistingIdeasForStackRanking(challenge);
   const userInput = JSON.stringify({ existing_ideas });
 
-  console.log(callGemini(systemPrompt, userInput));
-  return callGemini(systemPrompt, userInput);
+  console.log(await callGemini(systemPrompt, userInput));
+  return await callGemini(systemPrompt, userInput);
 }
 
 export async function runCreativityAnalysis(new_idea) {
