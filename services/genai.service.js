@@ -42,34 +42,38 @@ export async function callGemini(systemPrompt, userInput) {
       }
     }
 
-    const fullText = resultChunks.join('');
-    //console.log("🧾 Full response:", fullText);
-
-    // const jsonStart = fullText.indexOf('{');
-    // const jsonEnd = fullText.lastIndexOf('}');
-    // if (jsonStart === -1 || jsonEnd === -1) throw new Error('Invalid JSON returned');
-
-    // const json = JSON.parse(fullText.slice(jsonStart, jsonEnd + 1));
-    // return json;
-
-    const start = fullText.indexOf('{') !== -1 ? fullText.indexOf('{') : fullText.indexOf('[');
-    const end = fullText.lastIndexOf('}') !== -1 ? fullText.lastIndexOf('}') : fullText.lastIndexOf(']');
-    
-    if (start === -1 || end === -1) {
-      throw new Error('No valid JSON object or array found in the response.');
-    }
-    
-    const rawJson = fullText.slice(start, end + 1).trim();
-    let parsed;
+    const fullText = resultChunks.join('').trim();
     
     try {
-      parsed = JSON.parse(rawJson);
-    } catch (parseErr) {
-      console.error("❌ Failed to parse JSON:", rawJson);
-      throw parseErr;
-    }
+      // 1. Check for JSON array
+      const arrayStart = fullText.indexOf('[');
+      const arrayEnd = fullText.lastIndexOf(']');
+      if (arrayStart !== -1 && arrayEnd !== -1) {
+        const arrayText = fullText.slice(arrayStart, arrayEnd + 1);
+        return JSON.parse(arrayText);
+      }
+      
+      // 2. Check for single JSON object
+      const objectStart = fullText.indexOf('{');
+      const objectEnd = fullText.lastIndexOf('}');
+      if (objectStart !== -1 && objectEnd !== -1) {
+        const objectText = fullText.slice(objectStart, objectEnd + 1);
+        return JSON.parse(objectText);
+      }
 
-    return parsed;
+    // 3. Fallback: multiple objects, but not inside array
+    const objectMatches = fullText.match(/{[^}]+}/g);
+    if (objectMatches && objectMatches.length > 0) {
+      const wrapped = `[${objectMatches.join(',')}]`;
+      return JSON.parse(wrapped);
+    }
+  
+    throw new Error("No valid JSON found in output.");
+  } catch (err) {
+    console.error("❌ JSON parsing failed:", err.message);
+    throw err;
+  }
+
 
   } catch (err) {
     console.error("❌ Error in callGemini:", err);
