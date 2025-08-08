@@ -564,7 +564,8 @@ FINAL OUTPUT (JSON ONLY)
   const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
-  console.log(callGemeni(systemPrompt, userInput));
+  const response = callGemini(systemPrompt, userInput);
+  console.log(response);
   return callGemini(systemPrompt, userInput);
 }
 
