@@ -564,9 +564,9 @@ FINAL OUTPUT (JSON ONLY)
   const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
-  const response = callGemini(systemPrompt, userInput);
+  const response = await callGemini(systemPrompt, userInput);
   console.log(response);
-  return callGemini(systemPrompt, userInput);
+  return response;
 }
 
 export async function runCreativityAnalysisandInsertIdea(new_idea) {
