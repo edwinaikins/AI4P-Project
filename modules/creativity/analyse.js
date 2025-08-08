@@ -513,7 +513,7 @@ Expected Output:
 }
 
 export async function runCreativityAnalysis(new_idea) {
-  const systemPrompt = `You are a senior AI solution architect. Given a new AI idea and a list of existing ideas, follow these steps:
+  const systemPrompt = `You are a senior AI solution architect with years of experience. Given a new AI idea and a list of existing ideas, follow these steps:
 
 INPUT VALIDATION
 - Verify "New Idea" is a string.
@@ -553,14 +553,13 @@ FINAL OUTPUT (JSON ONLY)
   "idea_category": "<string>",
   "idea_cluster": "<string>",
   "cluster_id": <int>,
-  "embedding": [<float>, ...], // 128 floats
   "most_similar_idea": {
     "idea_id": "<string> | null",
     "similarity_score": <float> | null, // 0-100
   }
 }
   `;
-    
+ //"embedding": [<float>, ...], // 128 floats   
   const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
