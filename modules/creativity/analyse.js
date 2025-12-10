@@ -952,7 +952,7 @@ Your response must be returned as **valid JSON only**, with no explanations or e
 Now evaluate this idea:
 `;
 
-  const userInput = JSON.stringify({ new_idea });
+  const userInput =  new_idea;
 
   return callGemini(systemPrompt, userInput);
 }
@@ -1102,9 +1102,8 @@ export async function runProcessIdeas() {
 
     const ideaObject = rows.map(formatIdeaAsObject);
     
-    for (const row in rows) {
-      const new_idea = JSON.stringify(ideaObject.idea_text);
-      const response = await runFeasibiltyAnalysis(new_idea);
+    for (const row in ideaObject) {
+      const response = await runFeasibiltyAnalysis(row.idea_text);
       console.log(response);
     }
 
