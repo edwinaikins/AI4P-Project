@@ -1046,7 +1046,7 @@ FINAL OUTPUT (JSON ONLY)
 
 // script to update ideas
 
-export async function processIdeas() {
+export async function runProcessIdeas() {
   try {
     console.log("Starting --->");
 
@@ -1055,6 +1055,7 @@ export async function processIdeas() {
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
       WHERE title IS NOT NULL
+      LIMIT 5
     `);
 
     console.log(`Found ${rows.length} ideas to process...`);
@@ -1073,7 +1074,6 @@ export async function processIdeas() {
       };
 
       const new_idea = JSON.stringify(ideaObject);
-      
 
       // ---- RUN ANALYSES SAFELY ----
       let clarity, impact, ethical, feasibility;
@@ -1112,6 +1112,14 @@ export async function processIdeas() {
         continue;
       }
 
+      // ---- NORMALIZE EMBEDDING ----
+      if (feasibility?.embedding && !Array.isArray(feasibility.embedding)) {
+        // convert {"0":0.11, "1":-0.04, ...} → [0.11, -0.04, ...]
+        feasibility.embedding = Object.keys(feasibility.embedding)
+          .sort((a, b) => Number(a) - Number(b))
+          .map((key) => feasibility.embedding[key]);
+      }
+
       //---- COMBINE RESULTS ----
       const evaluationResults = {
         ...clarity,
@@ -1121,23 +1129,22 @@ export async function processIdeas() {
       };
 
       console.log("Merged results:", evaluationResults);
-      //console.log("Clarity: ", clarity);
 
-      // No JSON.parse needed
-      const parsed = evaluationResults;
-
-      // ---- UPDATE SQL (future step) ----
+      // ---- SQL UPDATE (optional, commented out) ----
       // await pool.query(`
       //   UPDATE deep_ideation.ideas
       //   SET evaluation = $1::jsonb
       //   WHERE id = $2
-      // `, [parsed, row.id]);
+      // `, [evaluationResults, row.id]);
 
       console.log(`✔ Completed row ${row.id}`);
     }
 
     console.log("🎉 Processing complete!");
-    return "Processing complete";
+    return {
+      message: "Processing complete",
+      results: evaluationResults
+    };
 
   } catch (err) {
     console.error("Fatal Error:", err);
