@@ -1055,87 +1055,102 @@ export async function runProcessIdeas() {
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
       WHERE title IS NOT NULL
-      LIMIT 5
+      LIMIT 1
     `);
 
-    console.log(`Found ${rows.length} ideas to process...`);
+    // Build the idea text that will be sent to Gemini
+    const ideaObject = {
+      "Idea Title": rows.title ?? "",
+      "Problem Statement": rows.problem_description ?? "",
+      "Proposed AI Solution": rows.proposed_solution ?? "",
+      "Content": rows.content ?? "",
+    };
 
-    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const new_idea = JSON.stringify(ideaObject);
 
-    for (const row of rows) {
-      console.log(`Processing ID ${row.id} ...`);
+    const result = await runTechnicalFeasibiltyAnalysis(new_idea);
+    console.log(result);
+    return result;
+    
 
-      // Build the idea text that will be sent to Gemini
-      const ideaObject = {
-        "Idea Title": row.title ?? "",
-        "Problem Statement": row.problem_description ?? "",
-        "Proposed AI Solution": row.proposed_solution ?? "",
-        "Content": row.content ?? "",
-      };
+    // console.log(`Found ${rows.length} ideas to process...`);
 
-      const new_idea = JSON.stringify(ideaObject);
+    // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      // ---- RUN ANALYSES SAFELY ----
-      let clarity, impact, ethical, feasibility;
+    // for (const row of rows) {
+    //   console.log(`Processing ID ${row.id} ...`);
 
-      try {
-        clarity = await runClarityandCoherenceAnalysis(new_idea);
-      } catch (e) {
-        console.error("Clarity analysis failed:", e);
-        continue;
-      }
+    //   // Build the idea text that will be sent to Gemini
+    //   const ideaObject = {
+    //     "Idea Title": row.title ?? "",
+    //     "Problem Statement": row.problem_description ?? "",
+    //     "Proposed AI Solution": row.proposed_solution ?? "",
+    //     "Content": row.content ?? "",
+    //   };
 
-      await delay(200);
+    //   const new_idea = JSON.stringify(ideaObject);
 
-      try {
-        impact = await runImpactAssessmentAnalysis(new_idea);
-      } catch (e) {
-        console.error("Impact analysis failed:", e);
-        continue;
-      }
+    //   // ---- RUN ANALYSES SAFELY ----
+    //   let clarity, impact, ethical, feasibility;
 
-      await delay(200);
+    //   try {
+    //     clarity = await runClarityandCoherenceAnalysis(new_idea);
+    //   } catch (e) {
+    //     console.error("Clarity analysis failed:", e);
+    //     continue;
+    //   }
 
-      try {
-        ethical = await runEthicalEvaluationAnalysis(new_idea);
-      } catch (e) {
-        console.error("Ethical analysis failed:", e);
-        continue;
-      }
+    //   await delay(200);
 
-      await delay(200);
+    //   try {
+    //     impact = await runImpactAssessmentAnalysis(new_idea);
+    //   } catch (e) {
+    //     console.error("Impact analysis failed:", e);
+    //     continue;
+    //   }
 
-      try {
-        feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-        console.log(feasibility);
-      } catch (e) {
-        console.error("Feasibility analysis failed:", e);
-        continue;
-      }
+    //   await delay(200);
+
+    //   try {
+    //     ethical = await runEthicalEvaluationAnalysis(new_idea);
+    //   } catch (e) {
+    //     console.error("Ethical analysis failed:", e);
+    //     continue;
+    //   }
+
+    //   await delay(200);
+
+    //   try {
+    //     feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+    //     console.log(feasibility);
+    //   } catch (e) {
+    //     console.error("Feasibility analysis failed:", e);
+    //     continue;
+    //   }
 
     
-      //---- COMBINE RESULTS ----
-      const evaluationResults = {
-        ...clarity,
-        ...impact,
-        ...ethical,
-        ...feasibility,
-      };
+    //   //---- COMBINE RESULTS ----
+    //   const evaluationResults = {
+    //     ...clarity,
+    //     ...impact,
+    //     ...ethical,
+    //     ...feasibility,
+    //   };
 
-      //console.log("Merged results:", evaluationResults);
+    //   //console.log("Merged results:", evaluationResults);
 
-      // ---- SQL UPDATE (optional, commented out) ----
-      // await pool.query(`
-      //   UPDATE deep_ideation.ideas
-      //   SET evaluation = $1::jsonb
-      //   WHERE id = $2
-      // `, [evaluationResults, row.id]);
+    //   // ---- SQL UPDATE (optional, commented out) ----
+    //   // await pool.query(`
+    //   //   UPDATE deep_ideation.ideas
+    //   //   SET evaluation = $1::jsonb
+    //   //   WHERE id = $2
+    //   // `, [evaluationResults, row.id]);
 
-      console.log(`✔ Completed row ${row.id}`);
-    }
+    //   console.log(`✔ Completed row ${row.id}`);
+    // }
 
-    console.log("🎉 Processing complete!");
-    return "Processing complete!";
+    // console.log("🎉 Processing complete!");
+    // return "Processing complete!";
 
   } catch (err) {
     console.error("Fatal Error:", err);
