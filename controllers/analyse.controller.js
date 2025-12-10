@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker } from '../modules/creativity/analyse.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
@@ -154,6 +154,42 @@ export const analyseStackRanking = async (req, res) => {
   }
   try {
     const result = await runStackRanking(challenge);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Model or server error', details: err.message });
+  }
+};
+
+
+// Deep Ideation
+
+// full ideaa
+export const analyseIdea = async (req, res) => {
+  const {new_idea} = req.body;
+
+  if (typeof new_idea !== 'string' || new_idea.trim() === '') {
+    return res.status(400).json({ error: 'Invalid or empty idea provided.' });
+  }
+
+  try {
+    const result = await runideaEvaluation(new_idea);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server or model error', details: err.message });
+  }
+}
+
+// idea checker
+export const ideaChecker = async (req, res) => {
+  const { new_idea } = req.body;
+
+  if (typeof new_idea !== 'string') {
+    return res.status(400).json({ error: 'Invalid input format' });
+  }
+
+  try {
+    const result = await runIdeaChecker(new_idea);
     res.json(result);
   } catch (err) {
     console.error(err);

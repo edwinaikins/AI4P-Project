@@ -140,7 +140,13 @@ function parseIdeaTextToObject(ideaText) {
 //   }
 // }
 
-async function insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, author_id) {
+async function insertNewIdea(
+  idea_id,
+  parsedIdea,
+  challenge,
+  evaluationResults,
+  author_id
+) {
   const {
     idea_title,
     problem_statement,
@@ -223,7 +229,7 @@ async function insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, 
       created_at,
       updated_at,
       status,
-      isdraft
+      isdraft,
     ];
 
     try {
@@ -282,7 +288,7 @@ async function insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, 
       challenge,
       author_id,
       updated_at,
-      idea_id
+      idea_id,
     ];
 
     try {
@@ -297,7 +303,6 @@ async function insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, 
     }
   }
 }
-
 
 // Add a new basic idea to the database
 async function insertNewBasicIdea(new_idea, similarityResults) {
@@ -369,14 +374,17 @@ async function fetchExistingIdeas() {
 // Fetch existing ideas with these fields (id, embedding, cluster_id, feasibility_score, idea_category, idea_cluster, impact_score, ethical_score, clarity_score) for stack ranking based on challenge as a parameter
 async function fetchExistingIdeasForStackRanking(challenge) {
   try {
-    const { rows } = await pool.query(`
+    const { rows } = await pool.query(
+      `
       SELECT id, embedding, cluster_id, feasibility_score, idea_category,
       idea_cluster, impact_score, ethical_score, clarity_score
       FROM ideas
       WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
       AND challenge = $1
       ORDER BY created_at DESC
-    `, [challenge]);
+    `,
+      [challenge]
+    );
 
     // Format the results as expected
     const existing_ideas = rows.map((row) => ({
@@ -402,10 +410,10 @@ async function fetchExistingIdeasForStackRanking(challenge) {
 export async function updateIdeaRanks(ideasWithRanks) {
   try {
     const updateQueries = ideasWithRanks.map((idea) => {
-      return pool.query(
-        `UPDATE ideas SET rank = $1 WHERE id = $2`,
-        [idea.rank, idea.id]
-      );
+      return pool.query(`UPDATE ideas SET rank = $1 WHERE id = $2`, [
+        idea.rank,
+        idea.id,
+      ]);
     });
 
     // Execute all update queries in parallel
@@ -559,7 +567,7 @@ FINAL OUTPUT (JSON ONLY)
   }
 }
   `;
- //"embedding": [<float>, ...], // 128 floats   
+  //"embedding": [<float>, ...], // 128 floats
   const existing_ideas = await fetchExistingIdeas();
   const userInput = JSON.stringify({ new_idea, existing_ideas });
 
@@ -791,9 +799,14 @@ export async function runClarityandCoherenceAnalysis(new_idea) {
   return callGemini(systemPrompt, userInput);
 }
 
-export async function runFullAIdeaEvaluation(new_idea, challenge, author_id, idea_id) {
+export async function runFullAIdeaEvaluation(
+  new_idea,
+  challenge,
+  author_id,
+  idea_id
+) {
   try {
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
     await delay(200); // 500ms delay
     const impact = await runImpactAssessmentAnalysis(new_idea);
@@ -801,8 +814,7 @@ export async function runFullAIdeaEvaluation(new_idea, challenge, author_id, ide
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
     const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-    
-    
+
     // const [clarity, impact, ethical, feasibility] = await Promise.all([
     //   runClarityandCoherenceAnalysis(new_idea),
     //   runImpactAssessmentAnalysis(new_idea),
@@ -821,12 +833,17 @@ export async function runFullAIdeaEvaluation(new_idea, challenge, author_id, ide
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
     // 4. Insert into DB (returns inserted ID)
-    await insertNewIdea(idea_id, parsedIdea, challenge, evaluationResults, author_id);
+    await insertNewIdea(
+      idea_id,
+      parsedIdea,
+      challenge,
+      evaluationResults,
+      author_id
+    );
     return {
-        status: "success",
-        message: "Idea evaluated and inserted successfully.",
+      status: "success",
+      message: "Idea evaluated and inserted successfully.",
     };
-    
   } catch (err) {
     console.error("Error during full AI idea evaluation:", err);
     //throw err;
@@ -880,7 +897,10 @@ export async function runStackRanking(challenge) {
       throw new Error(rankingResults.error);
     }
     await updateIdeaRanks(rankingResults);
-    return {status: "success", message: "Stack ranking completed successfully."};
+    return {
+      status: "success",
+      message: "Stack ranking completed successfully.",
+    };
   } catch (error) {
     console.error("Error in runStackRanking:", error);
     return {
@@ -889,4 +909,136 @@ export async function runStackRanking(challenge) {
       details: error.message,
     };
   }
+}
+
+// Deep Ideation endpoints
+
+// full idea analysis
+export async function runideaEvaluation(new_idea) {
+  try {
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const clarity = await runClarityandCoherenceAnalysis(new_idea);
+    await delay(200); // 500ms delay
+    const impact = await runImpactAssessmentAnalysis(new_idea);
+    await delay(200);
+    const ethical = await runEthicalEvaluationAnalysis(new_idea);
+    await delay(200);
+    const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+
+    // Merge all outputs into one JSON
+    const evaluationResults = {
+      ...clarity,
+      ...impact,
+      ...ethical,
+      ...feasibility,
+    };
+
+    // return evaluation results
+    return {
+      status: "success",
+      results: evaluationResults
+    }
+  } catch (error) {
+    console.error("Error during full AI idea evaluation:", error);
+    //throw err;
+    return {
+      status: "error",
+      message: "Something went wrong during idea evaluation.",
+      error: error.message,
+    };
+  }
+}
+
+// format idea parts into an idea_text
+function formatIdeaAsObject(row) {
+  // Construct the idea_text from the descriptive fields only
+  const ideaTextObject = {
+    "Idea Title": row.title,
+    "Content": row.content,
+    "Problem Description": row.problem_description,
+    "Proposed Solution": row.proposed_solution,
+    "Potential Impact": row.potential_impact,
+  };
+
+  return {
+    idea_id: row.id,
+    idea_text: JSON.stringify(ideaTextObject), // Don't escape quotes; let JSON.stringify handle that
+    embedding: Array.isArray(row.embedding) ? row.embedding.slice(0, 128) : [],
+    cluster_id: parseInt(row.cluster_id),
+  };
+}
+
+// Fetch existing ideas with only required fields for idea checker
+async function fetchIdeas() {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, title, content, challenge_name, goal_alignment, problem_description, proposed_solution, industries, technologies, embedding, cluster_id
+      FROM deep_ideation.ideas
+      WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
+    `);
+
+    // Format the results as expected
+    const existing_ideas = rows.map(formatIdeaAsObject);
+
+    return existing_ideas;
+  } catch (error) {
+    console.error("Error fetching existing ideas:", error);
+    throw error;
+  }
+}
+
+export async function runIdeaChecker(new_idea) {
+  const systemPrompt = `You are a senior AI solution architect with years of experience. Given a new AI idea and a list of existing ideas, follow these steps:
+
+INPUT VALIDATION
+- Verify "New Idea" is a string.
+- Verify "Existing Ideas" is a list of dictionaries with keys: 
+  "idea_id" (string), "idea_text" (string), "embedding" (128 floats), "cluster_id" (integer).
+
+Vector Embedding
+1. Generate a 128-dim embedding for the new idea using textembedding-gecko@001.
+
+Cluster Assignment
+2. Assign the new idea to the nearest cluster using the pre-trained K-Means model. 
+   Output "cluster_id" (integer 0 to k-1).
+
+Technical Feasibility Scoring
+3. Assign "feasibility_score" (0-100):
+   - 0-30: Not technically feasible
+   - 31-70: Partially feasible
+   - 71-100: Technically feasible
+
+Categorization
+4. Assign "idea_category" (e.g., Finance, Health).
+5. Assign "idea_cluster" (e.g., Fraud Detection, Clinical Diagnostics).
+
+Similarity Scoring
+6. Filter existing ideas to the same cluster_id.
+7. Remove duplicates: Exclude ideas with >95% text similarity (case-insensitive) to new idea.
+8. For remaining ideas:
+   a. Calculate cosine similarity: 𝑠𝑖𝑚=𝑑𝑜𝑡(𝐴,𝐵)/(‖𝐴‖‖𝐵‖)
+   b. Convert to 0-100 scale: 𝑠𝑐𝑜𝑟𝑒=𝑟𝑜𝑢𝑛𝑑((𝑠𝑖𝑚+1)×50, 2)
+9. If no ideas remain, return: 
+   "most_similar_idea": null
+10. Else, return the top match ONLY if its score ≥ 20. Otherwise, return null.
+
+FINAL OUTPUT (JSON ONLY)
+{
+  "feasibility_score": <int>,
+  "idea_category": "<string>",
+  "idea_cluster": "<string>",
+  "cluster_id": <int>,
+  "most_similar_idea": {
+    "idea_id": "<string> | null",
+    "similarity_score": <float> | null, // 0-100
+  }
+}
+  `;
+  
+  const existing_ideas = await fetchIdeas();
+  const userInput = JSON.stringify({ new_idea, existing_ideas });
+
+  const response = await callGemini(systemPrompt, userInput);
+  console.log(response);
+  return response;
 }
