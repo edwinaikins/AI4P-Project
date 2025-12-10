@@ -1141,10 +1141,7 @@ export async function runProcessIdeas() {
     }
 
     console.log("🎉 Processing complete!");
-    return {
-      message: "Processing complete",
-      results: evaluationResults
-    };
+    return "Processing complete!";
 
   } catch (err) {
     console.error("Fatal Error:", err);
