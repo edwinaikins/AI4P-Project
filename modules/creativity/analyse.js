@@ -1,5 +1,6 @@
 import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
+import { json } from "express";
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
@@ -1064,12 +1065,15 @@ export async function processIdeas() {
       console.log(`Processing ID ${row.id} ...`);
 
       // Build the idea text that will be sent to Gemini
-      const new_idea = `
-        Title: ${row.title}
-        Problem: ${row.problem_description}
-        Proposed Solution: ${row.proposed_solution}
-        Content: ${row.content}
-      `;
+      const ideaObject = {
+        "Idea Title": row.title,
+        "Problem Statement": row.problem_description,
+        "Proposed AI Solution": row.proposed_solution,
+        "Content": row.content,
+      };
+
+      const new_idea = json.stringify(ideaObject);
+      
 
       // ---- RUN ANALYSES SAFELY ----
       let clarity, impact, ethical, feasibility;
@@ -1083,41 +1087,41 @@ export async function processIdeas() {
 
       await delay(200);
 
-      // try {
-      //   impact = await runImpactAssessmentAnalysis(new_idea);
-      // } catch (e) {
-      //   console.error("Impact analysis failed:", e);
-      //   continue;
-      // }
+      try {
+        impact = await runImpactAssessmentAnalysis(new_idea);
+      } catch (e) {
+        console.error("Impact analysis failed:", e);
+        continue;
+      }
 
-      // await delay(200);
+      await delay(200);
 
-      // try {
-      //   ethical = await runEthicalEvaluationAnalysis(new_idea);
-      // } catch (e) {
-      //   console.error("Ethical analysis failed:", e);
-      //   continue;
-      // }
+      try {
+        ethical = await runEthicalEvaluationAnalysis(new_idea);
+      } catch (e) {
+        console.error("Ethical analysis failed:", e);
+        continue;
+      }
 
-      // await delay(200);
+      await delay(200);
 
-      // try {
-      //   feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-      // } catch (e) {
-      //   console.error("Feasibility analysis failed:", e);
-      //   continue;
-      // }
+      try {
+        feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+      } catch (e) {
+        console.error("Feasibility analysis failed:", e);
+        continue;
+      }
 
-      // ---- COMBINE RESULTS ----
-      // const evaluationResults = {
-      //   ...clarity,
-      //   ...impact,
-      //   ...ethical,
-      //   ...feasibility,
-      // };
+      //---- COMBINE RESULTS ----
+      const evaluationResults = {
+        ...clarity,
+        ...impact,
+        ...ethical,
+        ...feasibility,
+      };
 
-      // console.log("Merged results:", evaluationResults);
-      console.log("Clarity: ", clarity);
+      console.log("Merged results:", evaluationResults);
+      //console.log("Clarity: ", clarity);
 
       // No JSON.parse needed
       const parsed = evaluationResults;
