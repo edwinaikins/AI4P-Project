@@ -949,10 +949,46 @@ Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g
 
 Your response must be returned as **valid JSON only**, with no explanations or extra text.
 
+Examples:
+
+Example 1
+Idea: "A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread."
+Output:
+{
+  "feasibility_score": 72,
+  "idea_category": "Environment",
+  "idea_cluster": "Wildfire Prevention",
+  "cluster_id": 3,
+  "embedding": [0.12, -0.04, 0.55, ... 128 floats total ...]
+}
+
+Example 2
+Idea: "AI that implants ideas into people’s dreams to influence behavior."
+Output:
+{
+  "feasibility_score": 12,
+  "idea_category": "General AI",
+  "idea_cluster": "Speculative Concepts",
+  "cluster_id": 7,
+  "embedding": [-0.22, 0.10, 0.04, ... 128 floats total ...]
+}
+
+Example 3
+Idea: " "
+Output:
+{
+  "feasibility_score": 0,
+  "idea_category": "n/a",
+  "idea_cluster": "n/a",
+  "cluster_id": 0,
+  "embedding": []
+}
+
+
 Now evaluate this idea:
 `;
 
-  const userInput =  JSON.stringify({new_idea});
+  const userInput = new_idea;
 
   return callGemini(systemPrompt, userInput);
 }
@@ -1102,13 +1138,13 @@ export async function runProcessIdeas() {
     `);
 
     const ideaObject = rows.map(formatIdeaAsObject);
-    
+
     for (const row in ideaObject) {
       const response = await runFeasibiltyAnalysis(row.idea_text);
       console.log(response);
     }
 
-   return "Success";
+    return "Success";
   } catch (err) {
     console.error("Fatal Error:", err);
     throw err;
