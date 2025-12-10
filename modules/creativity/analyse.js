@@ -1058,7 +1058,7 @@ export async function runProcessIdeas() {
     `);
 
     const new_idea = rows.map(formatIdeaAsObject);
-    const anaylsedidea = await runTechnicalFeasibiltyAnalysis(new_idea);
+    const anaylsedidea = await runTechnicalFeasibiltyAnalysis(new_idea.idea_text);
     return anaylsedidea;
   } catch (err) {
     console.error("Fatal Error:", err);
