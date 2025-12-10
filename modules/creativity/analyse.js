@@ -1045,7 +1045,8 @@ FINAL OUTPUT (JSON ONLY)
 
 // script to update ideas
 
-export async function processIdeas() {
+export async function processIdeas(script) {
+  console.log(script);
   try {
     // 1. Fetch all rows that need to be processed
     const { rows } = await pool.query(`
