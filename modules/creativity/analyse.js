@@ -1058,24 +1058,26 @@ export async function runProcessIdeas() {
       LIMIT 5
     `);
 
-    // Build the idea text that will be sent to Gemini
-    const ideaObject = {
-      "Idea Title": rows.title ?? "",
-      "Problem Statement": rows.problem_description ?? "",
-      "Proposed AI Solution": rows.proposed_solution ?? "",
-      Content: rows.content ?? "",
-    };
-    console.log(ideaObject);
+    for (let row in rows) {
+      // Build the idea text that will be sent to Gemini
+      const ideaObject = {
+        "Idea Title": row.title ?? "",
+        "Problem Statement": row.problem_description ?? "",
+        "Proposed AI Solution": row.proposed_solution ?? "",
+        Content: row.content ?? "",
+      };
+      console.log(ideaObject);
 
-    const new_idea = JSON.stringify(ideaObject);
-    console.log('New Idea:', new_idea);
+      const new_idea = JSON.stringify(ideaObject);
+      console.log("New Idea:", new_idea);
 
-    try {
-      const result = await runTechnicalFeasibiltyAnalysis(new_idea);
-      console.log(result);
-      return result;
-    } catch (error) {
-      console.log(error.message);
+      try {
+        const result = await runTechnicalFeasibiltyAnalysis(new_idea);
+        console.log(result);
+        return result;
+      } catch (error) {
+        console.log(error.message);
+      }
     }
 
     // console.log(`Found ${rows.length} ideas to process...`);
