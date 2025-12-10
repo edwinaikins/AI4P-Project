@@ -1057,9 +1057,8 @@ export async function runProcessIdeas() {
       WHERE title ILIKE 'The DIAlectic: An AI Powered Legal Approach to Conflict Resolution By Synthesis'
     `);
 
-    const new_idea = rows.map(formatIdeaAsObject);
-    const anaylsedidea = await runTechnicalFeasibiltyAnalysis(new_idea.idea_text);
-    return anaylsedidea;
+    console.log(rows);
+    return "Success";
   } catch (err) {
     console.error("Fatal Error:", err);
     throw err;
