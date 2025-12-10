@@ -1083,40 +1083,41 @@ export async function processIdeas() {
 
       await delay(200);
 
-      try {
-        impact = await runImpactAssessmentAnalysis(new_idea);
-      } catch (e) {
-        console.error("Impact analysis failed:", e);
-        continue;
-      }
+      // try {
+      //   impact = await runImpactAssessmentAnalysis(new_idea);
+      // } catch (e) {
+      //   console.error("Impact analysis failed:", e);
+      //   continue;
+      // }
 
-      await delay(200);
+      // await delay(200);
 
-      try {
-        ethical = await runEthicalEvaluationAnalysis(new_idea);
-      } catch (e) {
-        console.error("Ethical analysis failed:", e);
-        continue;
-      }
+      // try {
+      //   ethical = await runEthicalEvaluationAnalysis(new_idea);
+      // } catch (e) {
+      //   console.error("Ethical analysis failed:", e);
+      //   continue;
+      // }
 
-      await delay(200);
+      // await delay(200);
 
-      try {
-        feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-      } catch (e) {
-        console.error("Feasibility analysis failed:", e);
-        continue;
-      }
+      // try {
+      //   feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+      // } catch (e) {
+      //   console.error("Feasibility analysis failed:", e);
+      //   continue;
+      // }
 
       // ---- COMBINE RESULTS ----
-      const evaluationResults = {
-        ...clarity,
-        ...impact,
-        ...ethical,
-        ...feasibility,
-      };
+      // const evaluationResults = {
+      //   ...clarity,
+      //   ...impact,
+      //   ...ethical,
+      //   ...feasibility,
+      // };
 
-      console.log("Merged results:", evaluationResults);
+      // console.log("Merged results:", evaluationResults);
+      console.log("Clarity: ", clarity);
 
       // No JSON.parse needed
       const parsed = evaluationResults;

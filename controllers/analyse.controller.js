@@ -205,6 +205,6 @@ export const processIdeas = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error(error);
-    //res.status(500).json({error: 'Model or server error', details: error.message});
+    res.status(500).json({error: 'Model or server error', details: error.message});
   }
 }
