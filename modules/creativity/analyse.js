@@ -1089,21 +1089,28 @@ FINAL OUTPUT (JSON ONLY)
 
 // script to update ideas
 
-// export async function runProcessIdeas() {
-//   try {
-//     console.log("Starting --->");
+export async function runProcessIdeas() {
+  try {
+    console.log("Starting --->");
 
-//     const { rows } = await pool.query(`
-//       SELECT id, title, content, challenge_name, goal_alignment, 
-//              problem_description, proposed_solution, industries, technologies
-//       FROM deep_ideation.ideas
-//       LIMIT 1
-//     `);
+    const { rows } = await pool.query(`
+      SELECT id, title, content, challenge_name, goal_alignment, 
+             problem_description, proposed_solution, industries, technologies
+      FROM deep_ideation.ideas
+      LIMIT 2
+    `);
 
-//     console.log(JSON.stringify(rows));
-//     return "Success";
-//   } catch (err) {
-//     console.error("Fatal Error:", err);
-//     throw err;
-//   }
-// }
+    const ideaObject = rows.map(formatIdeaAsObject);
+    
+    for (const row in rows) {
+      const new_idea = JSON.stringify(ideaObject.idea_text);
+      const response = await runFeasibiltyAnalysis(new_idea);
+      console.log(response);
+    }
+
+   return "Success";
+  } catch (err) {
+    console.error("Fatal Error:", err);
+    throw err;
+  }
+}
