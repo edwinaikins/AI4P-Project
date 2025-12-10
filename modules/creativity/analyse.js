@@ -1055,7 +1055,7 @@ export async function runProcessIdeas() {
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
       WHERE title IS NOT NULL
-      LIMIT 1
+      LIMIT 5
     `);
 
     // Build the idea text that will be sent to Gemini
