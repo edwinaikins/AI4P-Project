@@ -202,6 +202,7 @@ export const ideaChecker = async (req, res) => {
 export const processIdeas = async (req, res) => {
   try {
     const result = await processIdeas();
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({error: 'Model or server error', details: error.message});
