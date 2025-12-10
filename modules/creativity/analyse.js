@@ -914,6 +914,49 @@ export async function runStackRanking(challenge) {
 
 // Deep Ideation endpoints
 
+// feasibility
+export async function runFeasibiltyAnalysis(new_idea) {
+  const systemPrompt = `
+You are a senior AI solution architect. For each given idea, you MUST return EXACTLY and ONLY the JSON object described below — no explanations, no text outside the JSON, no extra fields.
+
+REQUIRED OUTPUT FORMAT (strict):
+{
+  "feasibility_score": <integer 0-100>,
+  "idea_category": "<string>",
+  "idea_cluster": "<string>",
+  "cluster_id": <integer>,
+  "embedding": [<float>, <float>, ...] 
+}
+
+RULES:
+Vector Embedding
+Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).  
+Include this as an array of floats under the key "embedding".
+
+Cluster Assignment 
+Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
+Record that as an integer cluster_id (0 through k-1).
+
+Technical Feasibility Scoring
+Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
+0–30: Not technically feasible (speculative, unproven tech)  
+31–70: Partially feasible (requires R&D or custom engineering)  
+71–100: Technically feasible (implementable today)  
+
+Categorization
+Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
+Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
+
+Your response must be returned as **valid JSON only**, with no explanations or extra text.
+
+Now evaluate this idea:
+`;
+
+  const userInput = JSON.stringify({ new_idea });
+
+  return callGemini(systemPrompt, userInput);
+}
+
 // full idea analysis
 export async function runideaEvaluation(new_idea) {
   try {
@@ -924,7 +967,7 @@ export async function runideaEvaluation(new_idea) {
     await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
-    const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+    const feasibility = await runFeasibiltyAnalysis(new_idea);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
@@ -955,7 +998,7 @@ function formatIdeaAsObject(row) {
   // Construct the idea_text from the descriptive fields only
   const ideaTextObject = {
     "Idea Title": row.title,
-    "Content": row.content,
+    Content: row.content,
     "Problem Description": row.problem_description,
     "Proposed Solution": row.proposed_solution,
     "Potential Impact": row.potential_impact,
@@ -1046,21 +1089,21 @@ FINAL OUTPUT (JSON ONLY)
 
 // script to update ideas
 
-export async function runProcessIdeas() {
-  try {
-    console.log("Starting --->");
+// export async function runProcessIdeas() {
+//   try {
+//     console.log("Starting --->");
 
-    const { rows } = await pool.query(`
-      SELECT id, title, content, challenge_name, goal_alignment, 
-             problem_description, proposed_solution, industries, technologies
-      FROM deep_ideation.ideas
-      WHERE title ILIKE 'The DIAlectic: An AI Powered Legal Approach to Conflict Resolution By Synthesis'
-    `);
+//     const { rows } = await pool.query(`
+//       SELECT id, title, content, challenge_name, goal_alignment, 
+//              problem_description, proposed_solution, industries, technologies
+//       FROM deep_ideation.ideas
+//       LIMIT 1
+//     `);
 
-    console.log(JSON.stringify(rows));
-    return "Success";
-  } catch (err) {
-    console.error("Fatal Error:", err);
-    throw err;
-  }
-}
+//     console.log(JSON.stringify(rows));
+//     return "Success";
+//   } catch (err) {
+//     console.error("Fatal Error:", err);
+//     throw err;
+//   }
+// }
