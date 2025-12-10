@@ -952,7 +952,7 @@ Your response must be returned as **valid JSON only**, with no explanations or e
 Now evaluate this idea:
 `;
 
-  const userInput =  new_idea;
+  const userInput =  JSON.stringify({new_idea});
 
   return callGemini(systemPrompt, userInput);
 }
@@ -968,13 +968,14 @@ export async function runideaEvaluation(new_idea) {
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
     const feasibility = await runFeasibiltyAnalysis(new_idea);
+    console.log(feasibility);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
-      clarity,
-      impact,
-      ethical,
-      feasibility,
+      ...clarity,
+      ...impact,
+      ...ethical,
+      ...feasibility,
     };
 
     // return evaluation results
