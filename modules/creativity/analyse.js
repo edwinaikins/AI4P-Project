@@ -1066,13 +1066,13 @@ export async function processIdeas() {
 
       // Build the idea text that will be sent to Gemini
       const ideaObject = {
-        "Idea Title": row.title,
-        "Problem Statement": row.problem_description,
-        "Proposed AI Solution": row.proposed_solution,
-        "Content": row.content,
+        "Idea Title": row.title ?? "",
+        "Problem Statement": row.problem_description ?? "",
+        "Proposed AI Solution": row.proposed_solution ?? "",
+        "Content": row.content ?? "",
       };
 
-      const new_idea = json.stringify(ideaObject);
+      const new_idea = JSON.stringify(ideaObject);
       
 
       // ---- RUN ANALYSES SAFELY ----
