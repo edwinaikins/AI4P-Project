@@ -1057,7 +1057,7 @@ export async function runProcessIdeas() {
       WHERE title ILIKE 'The DIAlectic: An AI Powered Legal Approach to Conflict Resolution By Synthesis'
     `);
 
-    console.log(rows);
+    console.log(JSON.stringify(rows));
     return "Success";
   } catch (err) {
     console.error("Fatal Error:", err);
