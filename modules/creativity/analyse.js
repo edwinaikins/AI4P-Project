@@ -1107,19 +1107,13 @@ export async function runProcessIdeas() {
 
       try {
         feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+        console.log(feasibility);
       } catch (e) {
         console.error("Feasibility analysis failed:", e);
         continue;
       }
 
-      // ---- NORMALIZE EMBEDDING ----
-      if (feasibility?.embedding && !Array.isArray(feasibility.embedding)) {
-        // convert {"0":0.11, "1":-0.04, ...} → [0.11, -0.04, ...]
-        feasibility.embedding = Object.keys(feasibility.embedding)
-          .sort((a, b) => Number(a) - Number(b))
-          .map((key) => feasibility.embedding[key]);
-      }
-
+    
       //---- COMBINE RESULTS ----
       const evaluationResults = {
         ...clarity,
@@ -1128,7 +1122,7 @@ export async function runProcessIdeas() {
         ...feasibility,
       };
 
-      console.log("Merged results:", evaluationResults);
+      //console.log("Merged results:", evaluationResults);
 
       // ---- SQL UPDATE (optional, commented out) ----
       // await pool.query(`
