@@ -1063,15 +1063,20 @@ export async function runProcessIdeas() {
       "Idea Title": rows.title ?? "",
       "Problem Statement": rows.problem_description ?? "",
       "Proposed AI Solution": rows.proposed_solution ?? "",
-      "Content": rows.content ?? "",
+      Content: rows.content ?? "",
     };
+    console.log(ideaObject);
 
     const new_idea = JSON.stringify(ideaObject);
+    console.log('New Idea:', new_idea);
 
-    const result = await runTechnicalFeasibiltyAnalysis(new_idea);
-    console.log(result);
-    return result;
-    
+    try {
+      const result = await runTechnicalFeasibiltyAnalysis(new_idea);
+      console.log(result);
+      return result;
+    } catch (error) {
+      console.log(error.message);
+    }
 
     // console.log(`Found ${rows.length} ideas to process...`);
 
@@ -1128,7 +1133,6 @@ export async function runProcessIdeas() {
     //     continue;
     //   }
 
-    
     //   //---- COMBINE RESULTS ----
     //   const evaluationResults = {
     //     ...clarity,
@@ -1151,11 +1155,9 @@ export async function runProcessIdeas() {
 
     // console.log("🎉 Processing complete!");
     // return "Processing complete!";
-
   } catch (err) {
     console.error("Fatal Error:", err);
     return "Fatal error";
-
   } finally {
     pool.end();
   }
