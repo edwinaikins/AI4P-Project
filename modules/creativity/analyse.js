@@ -1047,30 +1047,68 @@ FINAL OUTPUT (JSON ONLY)
 
 export async function processIdeas() {
   try {
-    // 1. Fetch all rows that need to be processed
+    console.log("Starting --->");
+
     const { rows } = await pool.query(`
-    SELECT id, title, content, challenge_name, goal_alignment, problem_description, proposed_solution, industries, technologies
+      SELECT id, title, content, challenge_name, goal_alignment, 
+             problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
       WHERE title IS NOT NULL
     `);
 
     console.log(`Found ${rows.length} ideas to process...`);
 
-    for (const row of rows) {
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    for (const row of rows) {
       console.log(`Processing ID ${row.id} ...`);
 
-      // 2. Run AI analysis
-      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const clarity = await runClarityandCoherenceAnalysis(new_idea);
-      await delay(200); // 500ms delay
-      const impact = await runImpactAssessmentAnalysis(new_idea);
-      await delay(200);
-      const ethical = await runEthicalEvaluationAnalysis(new_idea);
-      await delay(200);
-      const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+      // Build the idea text that will be sent to Gemini
+      const new_idea = `
+        Title: ${row.title}
+        Problem: ${row.problem_description}
+        Proposed Solution: ${row.proposed_solution}
+        Content: ${row.content}
+      `;
 
-      // Merge all outputs into one JSON
+      // ---- RUN ANALYSES SAFELY ----
+      let clarity, impact, ethical, feasibility;
+
+      try {
+        clarity = await runClarityandCoherenceAnalysis(new_idea);
+      } catch (e) {
+        console.error("Clarity analysis failed:", e);
+        continue;
+      }
+
+      await delay(200);
+
+      try {
+        impact = await runImpactAssessmentAnalysis(new_idea);
+      } catch (e) {
+        console.error("Impact analysis failed:", e);
+        continue;
+      }
+
+      await delay(200);
+
+      try {
+        ethical = await runEthicalEvaluationAnalysis(new_idea);
+      } catch (e) {
+        console.error("Ethical analysis failed:", e);
+        continue;
+      }
+
+      await delay(200);
+
+      try {
+        feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+      } catch (e) {
+        console.error("Feasibility analysis failed:", e);
+        continue;
+      }
+
+      // ---- COMBINE RESULTS ----
       const evaluationResults = {
         ...clarity,
         ...impact,
@@ -1078,55 +1116,28 @@ export async function processIdeas() {
         ...feasibility,
       };
 
-      console.log(evaluationResults);
+      console.log("Merged results:", evaluationResults);
 
-      let parsed;
-      try {
-        parsed = JSON.parse(evaluationResults);
-      } catch (err) {
-        console.error("❌ Failed to parse AI JSON for row", row.id, err);
-        continue;
-      }
+      // No JSON.parse needed
+      const parsed = evaluationResults;
 
-      // const {
-      //   feasibility_score,
-      //   idea_category,
-      //   idea_cluster,
-      //   cluster_id,
-      //   embedding,
-      // } = parsed;
+      // ---- UPDATE SQL (future step) ----
+      // await pool.query(`
+      //   UPDATE deep_ideation.ideas
+      //   SET evaluation = $1::jsonb
+      //   WHERE id = $2
+      // `, [parsed, row.id]);
 
-      // // 3. Update row with AI results
-      // await pool.query(
-      //   `
-      //   UPDATE your_schema.your_table
-      //   SET
-      //     feasibility_score = $1,
-      //     idea_category = $2,
-      //     idea_cluster = $3,
-      //     cluster_id = $4,
-      //     embedding = $5,
-      //     updated_at = NOW()
-      //   WHERE id = $6
-      // `,
-      //   [
-      //     feasibility_score || 0,
-      //     idea_category || "n/a",
-      //     idea_cluster || "n/a",
-      //     cluster_id ?? null,
-      //     embedding || [],
-      //     row.id,
-      //   ]
-      // );
-
-      // console.log(`✔ Updated row ${row.id}`);
+      console.log(`✔ Completed row ${row.id}`);
     }
 
     console.log("🎉 Processing complete!");
     return "Processing complete";
+
   } catch (err) {
     console.error("Fatal Error:", err);
     return "Fatal error";
+
   } finally {
     pool.end();
   }
