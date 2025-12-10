@@ -200,9 +200,8 @@ export const ideaChecker = async (req, res) => {
 
 // script
 export const processIdeas = async (req, res) => {
-  const {script} = req.body;
   try {
-    const result = await processIdeas(script);
+    const result = await processIdeas();
     res.json(result);
   } catch (error) {
     console.error(error);
