@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, processIdeas } from '../modules/creativity/analyse.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
@@ -199,7 +199,7 @@ export const ideaChecker = async (req, res) => {
 
 
 // script
-export const processIdeas = async (req, res) => {
+export const runprocessIdeas = async (req, res) => {
   try {
     const result = await processIdeas();
     res.json(result);
