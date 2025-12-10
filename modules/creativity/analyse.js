@@ -955,7 +955,7 @@ function formatIdeaAsObject(row) {
   // Construct the idea_text from the descriptive fields only
   const ideaTextObject = {
     "Idea Title": row.title,
-    Content: row.content,
+    "Content": row.content,
     "Problem Description": row.problem_description,
     "Proposed Solution": row.proposed_solution,
     "Potential Impact": row.potential_impact,
@@ -1054,113 +1054,13 @@ export async function runProcessIdeas() {
       SELECT id, title, content, challenge_name, goal_alignment, 
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
-      WHERE title IS NOT NULL
-      LIMIT 5
+      WHERE title ILIKE 'The DIAlectic: An AI Powered Legal Approach to Conflict Resolution By Synthesis'
     `);
 
-    for (let row in rows) {
-      // Build the idea text that will be sent to Gemini
-      const ideaObject = {
-        "Idea Title": row.title ?? "",
-        "Problem Statement": row.problem_description ?? "",
-        "Proposed AI Solution": row.proposed_solution ?? "",
-        Content: row.content ?? "",
-      };
-      console.log(ideaObject);
-
-      const new_idea = JSON.stringify(ideaObject);
-      console.log("New Idea:", new_idea);
-
-      try {
-        const result = await runTechnicalFeasibiltyAnalysis(new_idea);
-        console.log(result);
-        return result;
-      } catch (error) {
-        console.log(error.message);
-      }
-    }
-
-    // console.log(`Found ${rows.length} ideas to process...`);
-
-    // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    // for (const row of rows) {
-    //   console.log(`Processing ID ${row.id} ...`);
-
-    //   // Build the idea text that will be sent to Gemini
-    //   const ideaObject = {
-    //     "Idea Title": row.title ?? "",
-    //     "Problem Statement": row.problem_description ?? "",
-    //     "Proposed AI Solution": row.proposed_solution ?? "",
-    //     "Content": row.content ?? "",
-    //   };
-
-    //   const new_idea = JSON.stringify(ideaObject);
-
-    //   // ---- RUN ANALYSES SAFELY ----
-    //   let clarity, impact, ethical, feasibility;
-
-    //   try {
-    //     clarity = await runClarityandCoherenceAnalysis(new_idea);
-    //   } catch (e) {
-    //     console.error("Clarity analysis failed:", e);
-    //     continue;
-    //   }
-
-    //   await delay(200);
-
-    //   try {
-    //     impact = await runImpactAssessmentAnalysis(new_idea);
-    //   } catch (e) {
-    //     console.error("Impact analysis failed:", e);
-    //     continue;
-    //   }
-
-    //   await delay(200);
-
-    //   try {
-    //     ethical = await runEthicalEvaluationAnalysis(new_idea);
-    //   } catch (e) {
-    //     console.error("Ethical analysis failed:", e);
-    //     continue;
-    //   }
-
-    //   await delay(200);
-
-    //   try {
-    //     feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
-    //     console.log(feasibility);
-    //   } catch (e) {
-    //     console.error("Feasibility analysis failed:", e);
-    //     continue;
-    //   }
-
-    //   //---- COMBINE RESULTS ----
-    //   const evaluationResults = {
-    //     ...clarity,
-    //     ...impact,
-    //     ...ethical,
-    //     ...feasibility,
-    //   };
-
-    //   //console.log("Merged results:", evaluationResults);
-
-    //   // ---- SQL UPDATE (optional, commented out) ----
-    //   // await pool.query(`
-    //   //   UPDATE deep_ideation.ideas
-    //   //   SET evaluation = $1::jsonb
-    //   //   WHERE id = $2
-    //   // `, [evaluationResults, row.id]);
-
-    //   console.log(`✔ Completed row ${row.id}`);
-    // }
-
-    // console.log("🎉 Processing complete!");
-    // return "Processing complete!";
+    const new_idea = rows.map(formatIdeaAsObject);
+    return new_idea;
   } catch (err) {
     console.error("Fatal Error:", err);
-    return "Fatal error";
-  } finally {
-    pool.end();
+    throw err;
   }
 }
