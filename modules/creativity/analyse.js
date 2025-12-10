@@ -971,10 +971,10 @@ export async function runideaEvaluation(new_idea) {
 
     // Merge all outputs into one JSON
     const evaluationResults = {
-      ...clarity,
-      ...impact,
-      ...ethical,
-      ...feasibility,
+      clarity,
+      impact,
+      ethical,
+      feasibility,
     };
 
     // return evaluation results
