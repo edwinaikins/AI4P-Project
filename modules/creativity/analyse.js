@@ -1235,8 +1235,6 @@ export async function runProcessIdeas() {
       SELECT id, title, content, challenge_name, goal_alignment, 
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
-      ORDER BY id DESC
-      LIMIT 5
     `);
 
     console.log("Fetched ideas:", rows.length);
