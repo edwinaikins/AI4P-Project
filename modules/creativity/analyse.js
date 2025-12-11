@@ -949,7 +949,8 @@ Now evaluate this idea:
 
   const userInput =  JSON.stringify({new_idea});
 
-  return callGemini(systemPrompt, userInput);
+  const response = await callGemini(systemPrompt, userInput);
+  return response;
 }
 
 // full idea analysis
