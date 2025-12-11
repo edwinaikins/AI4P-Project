@@ -1333,12 +1333,14 @@ async function updateIdeaScores(id, {
     WHERE id = $9
     `,
     [
-      feasibility,
+      feasibility_score,
       cluster_id,
       clarity,
       impact,
       ethical,
       embedding,
+      idea_category,
+      idea_cluster,
       id
     ]
   );
