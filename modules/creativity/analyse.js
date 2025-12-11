@@ -1147,9 +1147,7 @@ function formatIdeaAsObject(row) {
 
   return {
     idea_id: row.id,
-    idea_text: JSON.stringify(ideaTextObject), // Don't escape quotes; let JSON.stringify handle that
-    embedding: Array.isArray(row.embedding) ? row.embedding.slice(0, 128) : [],
-    cluster_id: parseInt(row.cluster_id),
+    idea_text: JSON.stringify(ideaTextObject),
   };
 }
 
@@ -1244,7 +1242,8 @@ export async function runProcessIdeas() {
     const ideaObject = rows.map(formatIdeaAsObject);
 
     for (const row in ideaObject) {
-      const response = await runFeasibilityAnalysis(row.idea_text);
+      console.log(row);
+      const response = await runFeasibilityAnalysis(row);
       console.log(response);
     }
 
