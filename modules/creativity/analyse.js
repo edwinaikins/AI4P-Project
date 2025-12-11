@@ -16,7 +16,7 @@ async function getAuthToken() {
 const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
 
-const EMBEDDING_MODEL = "text-embedding-005";
+const EMBEDDING_MODEL = "text-embedding-004";
 const OUTPUT_DIM = 256;
 
 
@@ -39,16 +39,26 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          // body: JSON.stringify({
+          //   instances: [
+          //     {
+          //       content: ideaText,
+          //       task_type: "SEMANTIC_SIMILARITY",
+          //     },
+          //   ],
+          //   parameters: {
+          //     outputDimensionality: OUTPUT_DIM,
+          //     autoTruncate: true,
+          //   },
+          // }),
           body: JSON.stringify({
             instances: [
               {
-                content: ideaText,
-                task_type: "SEMANTIC_SIMILARITY",
-              },
+                text: ideaText
+              }
             ],
             parameters: {
-              outputDimensionality: OUTPUT_DIM,
-              autoTruncate: true,
+              outputDimensionality: OUTPUT_DIM
             },
           }),
         },
