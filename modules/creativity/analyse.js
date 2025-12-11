@@ -1277,7 +1277,7 @@ export async function runProcessIdeas() {
       console.log("Processing idea:", idea.id);
 
       const feasibility = await runFeasibilityAnalysis(idea.idea_text);
-      const embedding = await generateEmbedding(idea.idea_text);
+      const embedding = await embedIdea(idea.idea_text);
       const cluster_id = await runClustering(embedding);
 
       console.log({
