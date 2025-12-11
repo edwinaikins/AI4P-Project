@@ -1126,6 +1126,7 @@ export async function runideaEvaluation(new_idea) {
     await delay(200);
     const clusterId = await runClustering(embedding);
     await delay(200);
+    console.log(embedding);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
