@@ -1244,7 +1244,7 @@ export async function runProcessIdeas() {
     const ideaObject = rows.map(formatIdeaAsObject);
 
     for (const row in ideaObject) {
-      const response = await runFeasibiltyAnalysis(row.idea_text);
+      const response = await runFeasibilityAnalysis(row.idea_text);
       console.log(response);
     }
 
