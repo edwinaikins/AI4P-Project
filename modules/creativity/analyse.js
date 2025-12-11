@@ -1235,6 +1235,7 @@ export async function runProcessIdeas() {
       SELECT id, title, content, challenge_name, goal_alignment, 
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
+      WHERE feasibility_score IS NULL OR clarity_score IS NULL OR impact_score IS NULL OR ethical_score IS NULL OR embedding IS NULL OR cluster_id IS NULL
     `);
 
     console.log("Fetched ideas:", rows.length);
