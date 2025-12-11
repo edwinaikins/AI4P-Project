@@ -39,26 +39,16 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          // body: JSON.stringify({
-          //   instances: [
-          //     {
-          //       content: ideaText,
-          //       task_type: "SEMANTIC_SIMILARITY",
-          //     },
-          //   ],
-          //   parameters: {
-          //     outputDimensionality: OUTPUT_DIM,
-          //     autoTruncate: true,
-          //   },
-          // }),
           body: JSON.stringify({
             instances: [
               {
-                text: ideaText
-              }
+                content: ideaText,
+                task_type: "SEMANTIC_SIMILARITY",
+              },
             ],
             parameters: {
-              outputDimensionality: OUTPUT_DIM
+              outputDimensionality: OUTPUT_DIM,
+              autoTruncate: true,
             },
           }),
         },
@@ -1048,7 +1038,7 @@ export async function runClustering(embedding) {
   Now evaluate this new idea:
   `;
 
-  const userInput = JSON.stringify({new_idea});
+  const userInput = JSON.stringify({embedding});
   const response = await callGemini(systemPrompt, userInput);
   console.log(response);
   return response;
