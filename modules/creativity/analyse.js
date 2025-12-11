@@ -1260,25 +1260,32 @@ export async function runProcessIdeas() {
       await delay(200);
       const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
       await delay(200);
+      const feasibility_score = feasibilityResult.feasibility_score;
+const idea_category = feasibilityResult.idea_category;
+const idea_cluster = feasibilityResult.idea_cluster;
 
       console.log({
         id: idea.id,
-        feasibility,
+        feasibility_score,
         cluster_id,
         clarity,
         impact,
-        ethical
+        ethical,
+        idea_category,
+        idea_cluster
       });
 
 
       // SAVE INTO DATABASE
       await updateIdeaScores(idea.id, {
-        feasibility,
+        feasibility_score,
         cluster_id,
         clarity,
         impact,
         ethical,
-        embedding
+        embedding,
+        idea_category,
+        idea_cluster
       });
 
       // Push results to return at the end
@@ -1302,12 +1309,14 @@ export async function runProcessIdeas() {
 }
 
 async function updateIdeaScores(id, {
-  feasibility,
+  feasibility_score,
   cluster_id,
   clarity,
   impact,
   ethical,
-  embedding
+  embedding,
+  idea_category,
+  idea_cluster
 }) {
   await pool.query(
     `
@@ -1318,8 +1327,10 @@ async function updateIdeaScores(id, {
       clarity_score = $3,
       impact_score = $4,
       ethical_score = $5,
-      embedding = $6
-    WHERE id = $7
+      embedding = $6,
+      idea_category = $7,
+      idea_cluster = $8
+    WHERE id = $9
     `,
     [
       feasibility,
