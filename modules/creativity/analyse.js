@@ -1227,37 +1227,6 @@ FINAL OUTPUT (JSON ONLY)
 }
 
 // // script to update ideas
-
-// export async function runProcessIdeas() {
-//   try {
-//     console.log("Starting --->");
-
-//     const { rows } = await pool.query(`
-//       SELECT id, title, content, challenge_name, goal_alignment, 
-//              problem_description, proposed_solution, industries, technologies
-//       FROM deep_ideation.ideas
-//       LIMIT 1
-//     `);
-//     console.log(rows);
-
-//     // // Format the results as expected
-//     // const existing_ideas = rows.map(formatIdeaAsObject);
-
-//     // for (const idea in existing_ideas) {
-//     //   console.log(idea);
-//     //   const response = await runFeasibilityAnalysis(idea.idea_text);
-//     //   console.log(response);
-//     // }
-
-//     return "Success";
-//   } catch (err) {
-//     console.error("Fatal Error:", err);
-//     throw err;
-//   }
-// }
-
-
-
 export async function runProcessIdeas() {
   try {
     console.log("Starting --->");
@@ -1274,36 +1243,93 @@ export async function runProcessIdeas() {
 
     const formattedIdeas = rows.map(formatIdeaAsObject);
 
+    const results = [];
+
     for (const idea of formattedIdeas) {
       console.log("Processing idea:", idea.id);
 
       const feasibility = await runFeasibilityAnalysis(idea.idea_text);
       const embedding = await embedIdea(idea.idea_text);
       const cluster_id = await runClustering(embedding);
+      const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
+      await delay(200); // 500ms delay
+      const impact = await runImpactAssessmentAnalysis(idea.idea_text);
+      await delay(200);
+      const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
+      await delay(200);
 
       console.log({
         id: idea.id,
         feasibility,
-        cluster_id
+        cluster_id,
+        clarity,
+        impact,
+        ethical
       });
 
-      const evaluationResults = {
-        ...feasibility,
-        embedding,
-        ...cluster_id
-      };
-       return evaluationResults;
 
-      // OPTIONAL: save results back to DB here
-      // await saveIdeaAnalysis(idea.id, feasibility, cluster_id);
+      // SAVE INTO DATABASE
+      await updateIdeaScores(idea.id, {
+        feasibility,
+        cluster_id,
+        clarity,
+        impact,
+        ethical,
+        embedding
+      });
+
+      // Push results to return at the end
+      results.push({
+        id: idea.id,
+        feasibility,
+        cluster_id,
+        clarity,
+        impact,
+        ethical
+      });
+
+      console.log(results[results.length - 1]);
     }
 
-    return "Success";
+    return results;
   } catch (err) {
     console.error("Fatal Error:", err);
     throw err;
   }
 }
+
+async function updateIdeaScores(id, {
+  feasibility,
+  cluster_id,
+  clarity,
+  impact,
+  ethical,
+  embedding
+}) {
+  await pool.query(
+    `
+    UPDATE deep_ideation.ideas
+    SET 
+      feasibility_score = $1,
+      cluster_id = $2,
+      clarity_score = $3,
+      impact_score = $4,
+      ethical_score = $5,
+      embedding = $6
+    WHERE id = $7
+    `,
+    [
+      feasibility,
+      cluster_id,
+      clarity,
+      impact,
+      ethical,
+      embedding,
+      id
+    ]
+  );
+}
+
 
 function formatIdeaAsString(idea) {
   return `
@@ -1316,14 +1342,18 @@ Content: ${idea.content}
 Problem: ${idea.problem_description}
 Solution: ${idea.proposed_solution}
 
-Industries: ${Array.isArray(idea.industries) ? idea.industries.join(", ") : "N/A"}
-Technologies: ${Array.isArray(idea.technologies) ? idea.technologies.join(", ") : "N/A"}
+Industries: ${
+    Array.isArray(idea.industries) ? idea.industries.join(", ") : "N/A"
+  }
+Technologies: ${
+    Array.isArray(idea.technologies) ? idea.technologies.join(", ") : "N/A"
+  }
 `;
 }
 
 function formatIdeaAsObject(row) {
   return {
     id: row.id,
-    idea_text: formatIdeaAsString(row)
+    idea_text: formatIdeaAsString(row),
   };
 }
