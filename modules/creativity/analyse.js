@@ -16,8 +16,30 @@ async function getAuthToken() {
 const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
 
-const EMBEDDING_MODEL = "text-embedding-004";
-const OUTPUT_DIM = 256;
+const EMBEDDING_MODEL = "text-embedding-005";
+const OUTPUT_DIM = 768;
+
+
+//timeout
+function fetchWithTimeout(resource, options = {}, timeout = 30000) {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    fetch(resource, {
+      ...options,
+      signal: controller.signal,
+    })
+      .then((response) => {
+        clearTimeout(id);
+        resolve(response);
+      })
+      .catch((error) => {
+        clearTimeout(id);
+        reject(error);
+      });
+  });
+}
 
 
 // embedding
@@ -39,18 +61,23 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          // body: JSON.stringify({
+          //   instances: [
+          //     {
+          //       content: ideaText,
+          //       task_type: "SEMANTIC_SIMILARITY",
+          //     },
+          //   ],
+          //   parameters: {
+          //     outputDimensionality: OUTPUT_DIM,
+          //     autoTruncate: true,
+          //   },
+          // }),
           body: JSON.stringify({
             instances: [
-              {
-                content: ideaText,
-                task_type: "SEMANTIC_SIMILARITY",
-              },
-            ],
-            parameters: {
-              outputDimensionality: OUTPUT_DIM,
-              autoTruncate: true,
-            },
-          }),
+              { text: ideaText }
+            ]
+          })          
         },
         30000
       );
