@@ -61,23 +61,18 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          // body: JSON.stringify({
-          //   instances: [
-          //     {
-          //       content: ideaText,
-          //       task_type: "SEMANTIC_SIMILARITY",
-          //     },
-          //   ],
-          //   parameters: {
-          //     outputDimensionality: OUTPUT_DIM,
-          //     autoTruncate: true,
-          //   },
-          // }),
           body: JSON.stringify({
             instances: [
-              { text: ideaText }
-            ]
-          })          
+              {
+                content: ideaText,
+                task_type: "SEMANTIC_SIMILARITY",
+              },
+            ],
+            parameters: {
+              outputDimensionality: OUTPUT_DIM,
+              autoTruncate: true,
+            },
+          }),          
         },
         30000
       );
