@@ -941,7 +941,7 @@ OUTPUT should be sticked to the below no matter what:
   "feasiblity score": <float>,
   "idea_category": <str>,
   "idea_cluster": <str>,
-  "embedding": ...
+  "embedding": [<float>, <float>, ...]
 }
 
 Now evaluate this idea:
