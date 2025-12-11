@@ -1252,7 +1252,7 @@ export async function runProcessIdeas() {
       await delay(200); // 500ms delay
       const embedding = await embedIdea(idea.idea_text);
       await delay(200); // 500ms delay
-      const cluster_id = await runClustering(embedding);
+      let cluster_id = await runClustering(embedding);
       await delay(200); // 500ms delay
       const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
       await delay(200); // 500ms delay
@@ -1261,8 +1261,9 @@ export async function runProcessIdeas() {
       const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
       await delay(200);
       const feasibility_score = feasibility.feasibility_score;
-const idea_category = feasibility.idea_category;
-const idea_cluster = feasibility.idea_cluster;
+      const idea_category = feasibility.idea_category;
+      const idea_cluster = feasibility.idea_cluster;
+      cluster_id = parseInt(cluster_id, 10);
 
       console.log({
         id: idea.id,
@@ -1272,9 +1273,8 @@ const idea_cluster = feasibility.idea_cluster;
         impact,
         ethical,
         idea_category,
-        idea_cluster
+        idea_cluster,
       });
-
 
       // SAVE INTO DATABASE
       await updateIdeaScores(idea.id, {
@@ -1285,7 +1285,7 @@ const idea_cluster = feasibility.idea_cluster;
         ethical,
         embedding,
         idea_category,
-        idea_cluster
+        idea_cluster,
       });
 
       // Push results to return at the end
@@ -1295,7 +1295,7 @@ const idea_cluster = feasibility.idea_cluster;
         cluster_id,
         clarity,
         impact,
-        ethical
+        ethical,
       });
 
       console.log(results[results.length - 1]);
@@ -1308,16 +1308,19 @@ const idea_cluster = feasibility.idea_cluster;
   }
 }
 
-async function updateIdeaScores(id, {
-  feasibility_score,
-  cluster_id,
-  clarity,
-  impact,
-  ethical,
-  embedding,
-  idea_category,
-  idea_cluster
-}) {
+async function updateIdeaScores(
+  id,
+  {
+    feasibility_score,
+    cluster_id,
+    clarity,
+    impact,
+    ethical,
+    embedding,
+    idea_category,
+    idea_cluster,
+  }
+) {
   await pool.query(
     `
     UPDATE deep_ideation.ideas
@@ -1341,11 +1344,10 @@ async function updateIdeaScores(id, {
       embedding,
       idea_category,
       idea_cluster,
-      id
+      id,
     ]
   );
 }
-
 
 function formatIdeaAsString(idea) {
   return `
