@@ -1023,34 +1023,15 @@ export async function runStackRanking(challenge) {
 // clustering model
 export async function runClustering(embedding) {
   try {
-    const systemPrompt = `You are a senior AI solution architect.
-
-    Assume you have access to a pre-trained K-Means clustering model and its centroids.  
-    Your task is to assign the provided embedding vector to the closest centroid.
-
-    The user message will contain a JSON object with a single field:
-{
-  "embedding": [ ... ]
-}
-    
-    Instructions:
-    1. Read the embedding provided in the user message.
-    2. Using the assumed K-Means model, determine the nearest centroid.
-    3. Return ONLY the following JSON structure:
-    
+    const systemPrompt = `You are a senior AI solution architect. For each given embedding, perform the following steps in order:
+    Cluster Assignment 
+    Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
+    Record that as an integer cluster_id (0 through k-1).
+    Your response must be returned as **valid JSON only**, with no explanations or extra text.
+    Output format:
     {
-      "cluster_id": <integer>
-    }
-    
-    Hard rules:
-    - Output must be valid JSON with no additional text or fields.
-    - Do NOT repeat or summarize the embedding.
-    - Do NOT include explanations, reasoning, or comments.
-    - cluster_id must be an integer.
-    - If the input is empty or invalid, return cluster_id = 0.
-    
-    Now evaluate this embedding:
-    `;
+      "cluster_id": <integer>,
+    }`;
 
     const userInput = JSON.stringify({ embedding });
     const response = await callGemini(systemPrompt, userInput);
@@ -1126,7 +1107,6 @@ export async function runideaEvaluation(new_idea) {
     await delay(200);
     const clusterId = await runClustering(embedding);
     await delay(200);
-    console.log(embedding);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
