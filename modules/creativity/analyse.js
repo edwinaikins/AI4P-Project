@@ -1139,7 +1139,7 @@ function formatIdeaAsObject(row) {
   // Construct the idea_text from the descriptive fields only
   const ideaTextObject = {
     "Idea Title": row.title,
-    Content: row.content,
+    "Content": row.content,
     "Problem Description": row.problem_description,
     "Proposed Solution": row.proposed_solution,
     "Potential Impact": row.potential_impact,
@@ -1239,9 +1239,12 @@ export async function runProcessIdeas() {
       LIMIT 2
     `);
 
-    for (const row in rows) {
-      console.log(row);
-      const response = await runFeasibilityAnalysis(row);
+    // Format the results as expected
+    const existing_ideas = rows.map(formatIdeaAsObject);
+
+    for (const idea in existing_ideas) {
+      console.log(idea);
+      const response = await runFeasibilityAnalysis(idea.idea_text);
       console.log(response);
     }
 
