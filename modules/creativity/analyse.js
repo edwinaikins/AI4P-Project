@@ -1023,42 +1023,32 @@ export async function runStackRanking(challenge) {
 
 // Deep Ideation endpoints
 
-// embedding model
+// clustering model
 export async function runClustering(embedding) {
   try {
-    const systemPrompt = `You are a senior AI solution architect. For each given embedding, perform the following steps in order:
-  Cluster Assignment 
-  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
-  Record that as an integer cluster_id (0 through k-1).
+    const systemPrompt = `You are a senior AI solution architect.
 
-  Your response must be returned as **valid JSON only**, with no explanations or extra text.
-  Output format:
-  {
-   "cluster_id": <integer>,
-  }
-  Examples:
-  Idea: “A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread.”
-  Output:
-  {
-   "cluster_id": 3,
-  }
-  Idea: “AI that implants ideas into people’s dreams to influence behavior.”
-  Output:
-  {
-   "cluster_id": 7,
-  }
-  Idea: " "
-  Output:
-  {
-    "cluster_id": 0,
-  },
-  Idea: "Hello World",
-  Output:
-  {
-    "cluster_id": 0,
-  }
-  Now evaluate this new idea:
-  `;
+    Assume you have access to a pre-trained K-Means clustering model and its centroids.  
+    Your task is to assign the provided embedding vector to the closest centroid.
+    
+    Instructions:
+    1. Read the embedding provided in the user message.
+    2. Using the assumed K-Means model, determine the nearest centroid.
+    3. Return ONLY the following JSON structure:
+    
+    {
+      "cluster_id": <integer>
+    }
+    
+    Hard rules:
+    - Output must be valid JSON with no additional text or fields.
+    - Do NOT repeat or summarize the embedding.
+    - Do NOT include explanations, reasoning, or comments.
+    - cluster_id must be an integer.
+    - If the input is empty or invalid, return cluster_id = 0.
+    
+    Now evaluate this embedding:
+    `;
 
   const userInput = JSON.stringify({embedding});
   const response = await callGemini(systemPrompt, userInput);
