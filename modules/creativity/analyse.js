@@ -921,14 +921,6 @@ You are a senior AI solution architect. For each given idea, you MUST return EXA
 
 
 RULES:
-Vector Embedding
-Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).  
-Include this as an array of floats under the key "embedding".
-
-Cluster Assignment 
-Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
-Record that as an integer cluster_id (0 through k-1).
-
 Technical Feasibility Scoring
 Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
 0–30: Not technically feasible (speculative, unproven tech)  
@@ -940,9 +932,11 @@ Choose a broad “idea_category” (e.g., Education, Health, Finance, Agricultur
 Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
 
 Your response must be returned as **valid JSON only**, with no explanations or extra text.
-OUTPUT
+OUTPUT should be sticked to the below no matter what:
 {
-  "feasiblity score": <float>
+  "feasiblity score": <float>,
+  "idea_category": <str>,
+  "idea_cluster": <str>
 }
 
 Now evaluate this idea:
