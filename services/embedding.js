@@ -19,7 +19,7 @@ export async function getIdeaEmbedding(text) {
       config: {
         // RECOMMENDED: Specify the task type for optimal embedding quality.
         // Common types: RETRIEVAL_DOCUMENT, RETRIEVAL_QUERY, SEMANTIC_SIMILARITY
-        taskType: "RETRIEVAL_DOCUMENT", 
+        taskType: "CLUSTERING", 
         // Optional: output_dimensionality: 768, // Use if you need a smaller vector (e.g., 768 or 1536)
       }
     });
