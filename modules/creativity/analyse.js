@@ -1260,9 +1260,9 @@ export async function runProcessIdeas() {
       await delay(200);
       const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
       await delay(200);
-      const feasibility_score = feasibilityResult.feasibility_score;
-const idea_category = feasibilityResult.idea_category;
-const idea_cluster = feasibilityResult.idea_cluster;
+      const feasibility_score = feasibility.feasibility_score;
+const idea_category = feasibility.idea_category;
+const idea_cluster = feasibility.idea_cluster;
 
       console.log({
         id: idea.id,
