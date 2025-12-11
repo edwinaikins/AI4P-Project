@@ -1,9 +1,6 @@
 import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
-// import { getIdeaEmbedding } from "../../services/embedding.js";
-// import { loadClusters } from "../../services/clustering.js";
-// import { assignCluster } from "../../services/clustering.js";
-// import { json } from "express";
+
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
@@ -917,6 +914,60 @@ export async function runStackRanking(challenge) {
 
 // Deep Ideation endpoints
 
+// embedding model
+export async function runEmbedding(new_idea) {
+  try {
+    const systemPrompt = `You are a senior AI solution architect. For each given idea, perform the following steps in order:
+  Vector Embedding
+  Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).  
+  Include this as an array of floats under the key "embedding".
+  Cluster Assignment 
+  Using a pre-trained K-Means model with k clusters (centroids provided separately), assign the idea’s embedding to its nearest cluster.  
+  Record that as an integer cluster_id (0 through k-1).
+
+  Your response must be returned as **valid JSON only**, with no explanations or extra text.
+  Output format:
+  {
+   "cluster_id": <integer>,
+   "embedding": [<float>, <float>, …]
+  }
+  Examples:
+  Idea: “A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread.”
+  Output:
+  {
+   "cluster_id": 3,
+   "embedding": [0.02, -0.11, 0.34, 0.04, 0.00, 0.15, -0.21, 0.08, 0.05, 0.19, 0.01, -0.10, 0.23, -0.07, 0.05, 0.14, -0.02, 0.09, -0.17, 0.06, 0.20, -0.04, -0.11, 0.07, 0.13, -0.03, -0.08, 0.16, -0.09, 0.02, 0.11, -0.19, 0.05, 0.08, -0.13, 0.06, -0.01, 0.18, -0.07, 0.10, 0.00, -0.15, 0.22, -0.08, 0.03, 0.17, -0.04, 0.10, -0.16, 0.07, 0.20, -0.05, -0.12, 0.08, 0.13, -0.03, -0.08, 0.16, -0.09, 0.03, 0.11, -0.20, 0.05, 0.08, -0.13, 0.06, -0.01, 0.18, -0.07, 0.11, 0.00, -0.15, 0.22, -0.09, 0.03, 0.18, -0.04, 0.10, -0.16, 0.07, 0.20, -0.05, -0.12, 0.08, 0.14, -0.04, -0.09, 0.17, -0.10, 0.03, 0.12, -0.20, 0.06, 0.09, -0.13, 0.06, -0.02, 0.18, -0.07, 0.11, 0.01, -0.16, 0.22, -0.09, 0.03, 0.18, -0.05, 0.11, -0.16, 0.08, 0.21, -0.05, -0.12, 0.08, 0.14, -0.04, -0.09, 0.17, -0.10, 0.04, 0.12, -0.21, 0.06, 0.09, -0.14]
+  }
+  Idea: “AI that implants ideas into people’s dreams to influence behavior.”
+  Output:
+  {
+   "cluster_id": 7,
+   "embedding": [0.512, -0.301, 0.047, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04, 0.51, -0.30, 0.04]
+  }
+  Idea: " "
+  Output:
+  {
+    "cluster_id": 0,
+    "embedding": []
+  },
+  Idea: "Hello World",
+  Output:
+  {
+    "cluster_id": 0,
+    "embedding": []
+  }
+  Now evaluate this new idea:
+  `;
+
+  const userInput = JSON.stringify({new_idea});
+  const response = await callGemini(systemPrompt, userInput);
+  console.log(response);
+  return response;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 // feasibility
 export async function runFeasibilityAnalysis(new_idea) {
   const systemPrompt = `
@@ -926,23 +977,8 @@ Crucial Constraints:
 
 Output Must Be Valid JSON Only: Absolutely NO preamble, explanation, markdown fences ("json"), or extra text outside the final JSON object.
 
-Synthesized Data: Since you cannot execute live API calls (e.g., embedding, clustering), you must synthesize highly realistic data for "embedding" and "cluster_id" based on the idea's content and the specified constraints.
 
 Required Steps (in order):
-
-Vector Embedding (Synthesized):
-
-Simulate generating a vector embedding for the idea text, as if using the textembedding-gecko@001 model.
-
-The resulting "embedding" array must be limited to exactly 128 floating-point numbers (to simulate the dimension reduction requirement).
-
-The values should be realistic for a contextual embedding (e.g., between -1.0 and 1.0).
-
-Cluster Assignment (Synthesized):
-
-Simulate assigning the synthesized embedding to its closest cluster using a hypothetical pre-trained K-Means model.
-
-Assign a realistic "cluster_id" as an integer (e.g., 0-9) that logically corresponds to the idea's domain.
 
 Technical Feasibility Scoring:
 
@@ -964,24 +1000,16 @@ Choose a specific, descriptive "idea_cluster" (subdomain) aligned with that cate
 
 Output Format (Strict Adherence Required):
 
-code
-JSON
-download
-content_copy
-expand_less
 {
  "feasibility_score": <integer 0–100>,
  "idea_category": "<string>",
- "idea_cluster": "<string>",
- "cluster_id": <integer>,
- "embedding": [<float>, <float>, …, <float>] // Must contain exactly 128 floats
+ "idea_cluster": "<string>"
 }
 
 Handling Edge Cases:
-If the idea is empty (""), too short, or nonsensical, assign "feasibility_score": 0, "idea_category": "n/a", "idea_cluster": "n/a", and provide an empty "embedding" array and a placeholder "cluster_id": -1.
+If the idea is empty (""), too short, or nonsensical, assign "feasibility_score": 0, "idea_category": "n/a", "idea_cluster": "n/a".
 
 Now, evaluate this new idea:
-"A predictive maintenance system for offshore wind turbines using drone-captured thermal and visual imagery processed by a deep learning model to identify micro-fractures."
 `;
   const userInput =  JSON.stringify({new_idea});
 
@@ -992,14 +1020,11 @@ Now, evaluate this new idea:
 // full idea analysis
 export async function runideaEvaluation(new_idea) {
   try {
-    // const embedding = await getIdeaEmbedding(new_idea);
-
-    // const centroids = loadClusters();
-    // const cluster_id = assignCluster(embedding, centroids);
-
-    // // Step 3 — Feasibility scoring (Gemini)
-    const feasibility = await runFeasibilityAnalysis(new_idea);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const feasibility = await runFeasibilityAnalysis(new_idea);
+    await delay(200);
+    const embedding = await runEmbedding(new_idea);
+    await delay(200);
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
     await delay(200); // 500ms delay
     const impact = await runImpactAssessmentAnalysis(new_idea);
@@ -1009,10 +1034,11 @@ export async function runideaEvaluation(new_idea) {
 
     // Merge all outputs into one JSON
     const evaluationResults = {
+      ...feasibility,
+      ...embedding,
       ...clarity,
       ...impact,
-      ...ethical,
-      ...feasibility,
+      ...ethical
     };
 
     // return evaluation results
