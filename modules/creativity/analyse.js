@@ -1247,10 +1247,13 @@ export async function runProcessIdeas() {
 
     for (const idea of formattedIdeas) {
       console.log("Processing idea:", idea.id);
-
+      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       const feasibility = await runFeasibilityAnalysis(idea.idea_text);
+      await delay(200); // 500ms delay
       const embedding = await embedIdea(idea.idea_text);
+      await delay(200); // 500ms delay
       const cluster_id = await runClustering(embedding);
+      await delay(200); // 500ms delay
       const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
       await delay(200); // 500ms delay
       const impact = await runImpactAssessmentAnalysis(idea.idea_text);
