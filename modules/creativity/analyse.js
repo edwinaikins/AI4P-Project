@@ -1116,7 +1116,7 @@ export async function runideaEvaluation(new_idea) {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const feasibility = await runFeasibilityAnalysis(new_idea);
     await delay(200);
-    const clusterId = await runClustering(embedding);
+    const embedding = await embedIdea(new_idea);
     await delay(200);
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
     await delay(200); // 500ms delay
@@ -1124,7 +1124,7 @@ export async function runideaEvaluation(new_idea) {
     await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
-    const embedding = await embedIdea(new_idea);
+    const clusterId = await runClustering(embedding);
     await delay(200);
 
     // Merge all outputs into one JSON
