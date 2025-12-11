@@ -917,39 +917,30 @@ export async function runStackRanking(challenge) {
 // feasibility
 export async function runFeasibiltyAnalysis(new_idea) {
   const systemPrompt = `
-You are a senior AI solution architect. For each idea, return EXACTLY this JSON object — no explanations, no extra text:
+You are a senior AI solution architect. For each given idea, you MUST return EXACTLY and ONLY the JSON object described below — no explanations, no text outside the JSON, no extra fields.
 
-{
-  "feasibility_score": <integer 0-100>,
-  "idea_category": "<string>",
-  "idea_cluster": "<string>",
-  "embedding": [<float>, <float>, ...] 
-}
 
 RULES:
-1. Generate a 128-dimensional numeric embedding that represents the idea semantically. 
-   (Do NOT call or emulate any external embedding model; simply generate a representative float array.)
+Technical Feasibility Scoring
+Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
+0–30: Not technically feasible (speculative, unproven tech)  
+31–70: Partially feasible (requires R&D or custom engineering)  
+71–100: Technically feasible (implementable today)  
 
-2. Provide feasibility_score (0-100):
-   0-30 → Not technically feasible  
-   31-70 → Partially feasible  
-   71-100 → Feasible today  
+Categorization
+Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
+Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
 
-3. Provide idea_category (broad domain) and idea_cluster (specific subdomain).
-
-4. Output MUST be valid JSON ONLY.
-
-EXAMPLE:
+Your response must be returned as **valid JSON only**, with no explanations or extra text.
+OUTPUT should be sticked to the below no matter what:
 {
-  "feasibility_score": 75,
-  "idea_category": "Productivity",
-  "idea_cluster": "Meeting Automation",
-  "embedding": [0.01, -0.02, 0.03, ... 128 floats]
+  "feasiblity score": <float>,
+  "idea_category": <str>,
+  "idea_cluster": <str>
 }
 
 Now evaluate this idea:
 `;
-
 
   const userInput =  JSON.stringify({new_idea});
 
@@ -960,6 +951,13 @@ Now evaluate this idea:
 // full idea analysis
 export async function runideaEvaluation(new_idea) {
   try {
+    const embedding = await getIdeaEmbedding(new_idea);
+
+    const centroids = loadClusters();
+    const cluster_id = assignCluster(embedding, centroids);
+
+    // Step 3 — Feasibility scoring (Gemini)
+    const feasibility = await runFeasibilityScoring(new_idea);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
     await delay(200); // 500ms delay
@@ -967,8 +965,6 @@ export async function runideaEvaluation(new_idea) {
     await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
-    const feasibility = await runFeasibiltyAnalysis(new_idea);
-    console.log(feasibility);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
@@ -976,6 +972,8 @@ export async function runideaEvaluation(new_idea) {
       ...impact,
       ...ethical,
       ...feasibility,
+      embedding,
+      cluster_id
     };
 
     // return evaluation results

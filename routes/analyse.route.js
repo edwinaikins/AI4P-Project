@@ -20,6 +20,4 @@ router.post('/analyseidea', analyseIdea);
 router.post('/ideachecker', ideaChecker);
 router.post('/processideas', processIdeas);
 
-router.post('/feasibility', feasibility);
-
 export default router;

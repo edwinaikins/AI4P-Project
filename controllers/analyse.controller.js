@@ -208,19 +208,3 @@ export const processIdeas = async (req, res) => {
     res.status(500).json({error: 'Model or server error', details: error.message});
   }
 }
-
-export const feasibility = async (req, res) => {
-  const { new_idea } = req.body;
-
-  if (typeof new_idea !== 'string') {
-    return res.status(400).json({error: 'Invalid input format'});
-  }
-
-  try {
-    const result = await runFeasibiltyAnalysis(new_idea);
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({error: 'Model or server error', details: err.message});
-  }
-}
