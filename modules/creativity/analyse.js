@@ -1252,7 +1252,7 @@ export async function runProcessIdeas() {
       await delay(200); // 500ms delay
       const embedding = await embedIdea(idea.idea_text);
       await delay(200); // 500ms delay
-      let cluster_id = await runClustering(embedding);
+      let cluster = await runClustering(embedding);
       await delay(200); // 500ms delay
       const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
       await delay(200); // 500ms delay
@@ -1263,15 +1263,18 @@ export async function runProcessIdeas() {
       const feasibility_score = feasibility.feasibility_score;
       const idea_category = feasibility.idea_category;
       const idea_cluster = feasibility.idea_cluster;
-      cluster_id = parseInt(cluster_id, 10);
+      const cluster_id = cluster.cluster_id;
+      const clarity_score = clarity.clarity_score;
+      const impact_score = impact.impact_score;
+      const ethical_score = ethical.ethical_score;
 
       console.log({
         id: idea.id,
         feasibility_score,
         cluster_id,
-        clarity,
-        impact,
-        ethical,
+        clarity_score,
+        impact_score,
+        ethical_score,
         idea_category,
         idea_cluster,
       });
@@ -1280,9 +1283,9 @@ export async function runProcessIdeas() {
       await updateIdeaScores(idea.id, {
         feasibility_score,
         cluster_id,
-        clarity,
-        impact,
-        ethical,
+        clarity_score,
+        impact_score,
+        ethical_score,
         embedding,
         idea_category,
         idea_cluster,
@@ -1293,9 +1296,9 @@ export async function runProcessIdeas() {
         id: idea.id,
         feasibility,
         cluster_id,
-        clarity,
-        impact,
-        ethical,
+        clarity_score,
+        impact_score,
+        ethical_score,
       });
 
       console.log(results[results.length - 1]);
@@ -1313,9 +1316,9 @@ async function updateIdeaScores(
   {
     feasibility_score,
     cluster_id,
-    clarity,
-    impact,
-    ethical,
+    clarity_score,
+    impact_score,
+    ethical_score,
     embedding,
     idea_category,
     idea_cluster,
@@ -1338,9 +1341,9 @@ async function updateIdeaScores(
     [
       feasibility_score,
       cluster_id,
-      clarity,
-      impact,
-      ethical,
+      clarity_score,
+      impact_score,
+      ethical_score,
       embedding,
       idea_category,
       idea_cluster,
