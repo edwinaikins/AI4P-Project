@@ -1,9 +1,9 @@
 import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
-import { getIdeaEmbedding } from "../../services/embedding.js";
-import { loadClusters } from "../../services/clustering.js";
-import { assignCluster } from "../../services/clustering.js";
-import { json } from "express";
+// import { getIdeaEmbedding } from "../../services/embedding.js";
+// import { loadClusters } from "../../services/clustering.js";
+// import { assignCluster } from "../../services/clustering.js";
+// import { json } from "express";
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
@@ -918,33 +918,71 @@ export async function runStackRanking(challenge) {
 // Deep Ideation endpoints
 
 // feasibility
-export async function runFeasibiltyAnalysis(new_idea) {
+export async function runFeasibilityAnalysis(new_idea) {
   const systemPrompt = `
-You are a senior AI solution architect. For each given idea, you MUST return EXACTLY and ONLY the JSON object described below — no explanations, no text outside the JSON, no extra fields.
+  You are an expert AI Solution Architect specializing in rapid concept evaluation. Your primary function is to process a given AI solution idea and return a comprehensive technical assessment strictly formatted as JSON.
 
+Crucial Constraints:
 
-RULES:
-Technical Feasibility Scoring
-Based on current off-the-shelf AI tools, cloud services, and engineering practices, evaluate the plausibility of the proposed AI solution and assign a “feasibility_score” from 0–100:  
-0–30: Not technically feasible (speculative, unproven tech)  
-31–70: Partially feasible (requires R&D or custom engineering)  
-71–100: Technically feasible (implementable today)  
+Output Must Be Valid JSON Only: Absolutely NO preamble, explanation, markdown fences ("json"), or extra text outside the final JSON object.
 
-Categorization
-Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
-Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
+Synthesized Data: Since you cannot execute live API calls (e.g., embedding, clustering), you must synthesize highly realistic data for "embedding" and "cluster_id" based on the idea's content and the specified constraints.
 
-Your response must be returned as **valid JSON only**, with no explanations or extra text.
-OUTPUT should be sticked to the below no matter what:
+Required Steps (in order):
+
+Vector Embedding (Synthesized):
+
+Simulate generating a vector embedding for the idea text, as if using the textembedding-gecko@001 model.
+
+The resulting "embedding" array must be limited to exactly 128 floating-point numbers (to simulate the dimension reduction requirement).
+
+The values should be realistic for a contextual embedding (e.g., between -1.0 and 1.0).
+
+Cluster Assignment (Synthesized):
+
+Simulate assigning the synthesized embedding to its closest cluster using a hypothetical pre-trained K-Means model.
+
+Assign a realistic "cluster_id" as an integer (e.g., 0-9) that logically corresponds to the idea's domain.
+
+Technical Feasibility Scoring:
+
+Evaluate the idea's plausibility based on current (off-the-shelf) AI tools, cloud services, and established engineering practices.
+
+Assign a "feasibility_score" from 0–100:
+
+0–30: Not technically feasible (speculative, unproven tech, requires breakthroughs).
+
+31–70: Partially feasible (requires significant R&D, custom engineering, or is highly dependent on non-AI components).
+
+71–100: Technically feasible (implementable today with existing, mature technology).
+
+Categorization:
+
+Choose a broad "idea_category" (e.g., Education, Health, Finance, Agriculture, Environment, Governance, Manufacturing).
+
+Choose a specific, descriptive "idea_cluster" (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling).
+
+Output Format (Strict Adherence Required):
+
+code
+JSON
+download
+content_copy
+expand_less
 {
-  "feasiblity score": <float>,
-  "idea_category": <str>,
-  "idea_cluster": <str>
+ "feasibility_score": <integer 0–100>,
+ "idea_category": "<string>",
+ "idea_cluster": "<string>",
+ "cluster_id": <integer>,
+ "embedding": [<float>, <float>, …, <float>] // Must contain exactly 128 floats
 }
 
-Now evaluate this idea:
-`;
+Handling Edge Cases:
+If the idea is empty (""), too short, or nonsensical, assign "feasibility_score": 0, "idea_category": "n/a", "idea_cluster": "n/a", and provide an empty "embedding" array and a placeholder "cluster_id": -1.
 
+Now, evaluate this new idea:
+"A predictive maintenance system for offshore wind turbines using drone-captured thermal and visual imagery processed by a deep learning model to identify micro-fractures."
+`;
   const userInput =  JSON.stringify({new_idea});
 
   const response = await callGemini(systemPrompt, userInput);
@@ -954,13 +992,13 @@ Now evaluate this idea:
 // full idea analysis
 export async function runideaEvaluation(new_idea) {
   try {
-    const embedding = await getIdeaEmbedding(new_idea);
+    // const embedding = await getIdeaEmbedding(new_idea);
 
-    const centroids = loadClusters();
-    const cluster_id = assignCluster(embedding, centroids);
+    // const centroids = loadClusters();
+    // const cluster_id = assignCluster(embedding, centroids);
 
-    // Step 3 — Feasibility scoring (Gemini)
-    const feasibility = await runFeasibilityScoring(new_idea);
+    // // Step 3 — Feasibility scoring (Gemini)
+    const feasibility = await runFeasibilityAnalysis(new_idea);
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
     await delay(200); // 500ms delay
@@ -975,8 +1013,6 @@ export async function runideaEvaluation(new_idea) {
       ...impact,
       ...ethical,
       ...feasibility,
-      embedding,
-      cluster_id
     };
 
     // return evaluation results
