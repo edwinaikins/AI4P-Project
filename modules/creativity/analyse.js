@@ -1139,7 +1139,7 @@ export async function runideaEvaluation(new_idea) {
     const evaluationResults = {
       ...feasibility,
       ...clusterId,
-      ...embedding,
+      embedding,
       ...clarity,
       ...impact,
       ...ethical
