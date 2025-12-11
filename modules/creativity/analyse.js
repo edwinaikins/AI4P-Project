@@ -1152,79 +1152,79 @@ export async function runideaEvaluation(new_idea) {
 // }
 
 // // Fetch existing ideas with only required fields for idea checker
-// async function fetchIdeas() {
-//   try {
-//     const { rows } = await pool.query(`
-//       SELECT id, title, content, challenge_name, goal_alignment, problem_description, proposed_solution, industries, technologies, embedding, cluster_id
-//       FROM deep_ideation.ideas
-//       WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
-//     `);
+async function fetchIdeas() {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, title, content, challenge_name, goal_alignment, problem_description, proposed_solution, industries, technologies, embedding, cluster_id
+      FROM deep_ideation.ideas
+      WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
+    `);
 
-//     // Format the results as expected
-//     const existing_ideas = rows.map(formatIdeaAsObject);
+    // Format the results as expected
+    const existing_ideas = rows.map(formatIdeaAsObject);
 
-//     return existing_ideas;
-//   } catch (error) {
-//     console.error("Error fetching existing ideas:", error);
-//     throw error;
-//   }
-// }
+    return existing_ideas;
+  } catch (error) {
+    console.error("Error fetching existing ideas:", error);
+    throw error;
+  }
+}
 
-// export async function runIdeaChecker(new_idea) {
-//   const systemPrompt = `You are a senior AI solution architect with years of experience. Given a new AI idea and a list of existing ideas, follow these steps:
+export async function runIdeaChecker(new_idea) {
+  const systemPrompt = `You are a senior AI solution architect with years of experience. Given a new AI idea and a list of existing ideas, follow these steps:
 
-// INPUT VALIDATION
-// - Verify "New Idea" is a string.
-// - Verify "Existing Ideas" is a list of dictionaries with keys: 
-//   "idea_id" (string), "idea_text" (string), "embedding" (128 floats), "cluster_id" (integer).
+INPUT VALIDATION
+- Verify "New Idea" is a string.
+- Verify "Existing Ideas" is a list of dictionaries with keys: 
+  "idea_id" (string), "idea_text" (string), "embedding" (128 floats), "cluster_id" (integer).
 
-// Vector Embedding
-// 1. Generate a 128-dim embedding for the new idea using textembedding-gecko@001.
+Vector Embedding
+1. Generate a 128-dim embedding for the new idea using textembedding-gecko@001.
 
-// Cluster Assignment
-// 2. Assign the new idea to the nearest cluster using the pre-trained K-Means model. 
-//    Output "cluster_id" (integer 0 to k-1).
+Cluster Assignment
+2. Assign the new idea to the nearest cluster using the pre-trained K-Means model. 
+   Output "cluster_id" (integer 0 to k-1).
 
-// Technical Feasibility Scoring
-// 3. Assign "feasibility_score" (0-100):
-//    - 0-30: Not technically feasible
-//    - 31-70: Partially feasible
-//    - 71-100: Technically feasible
+Technical Feasibility Scoring
+3. Assign "feasibility_score" (0-100):
+   - 0-30: Not technically feasible
+   - 31-70: Partially feasible
+   - 71-100: Technically feasible
 
-// Categorization
-// 4. Assign "idea_category" (e.g., Finance, Health).
-// 5. Assign "idea_cluster" (e.g., Fraud Detection, Clinical Diagnostics).
+Categorization
+4. Assign "idea_category" (e.g., Finance, Health).
+5. Assign "idea_cluster" (e.g., Fraud Detection, Clinical Diagnostics).
 
-// Similarity Scoring
-// 6. Filter existing ideas to the same cluster_id.
-// 7. Remove duplicates: Exclude ideas with >95% text similarity (case-insensitive) to new idea.
-// 8. For remaining ideas:
-//    a. Calculate cosine similarity: 𝑠𝑖𝑚=𝑑𝑜𝑡(𝐴,𝐵)/(‖𝐴‖‖𝐵‖)
-//    b. Convert to 0-100 scale: 𝑠𝑐𝑜𝑟𝑒=𝑟𝑜𝑢𝑛𝑑((𝑠𝑖𝑚+1)×50, 2)
-// 9. If no ideas remain, return: 
-//    "most_similar_idea": null
-// 10. Else, return the top match ONLY if its score ≥ 20. Otherwise, return null.
+Similarity Scoring
+6. Filter existing ideas to the same cluster_id.
+7. Remove duplicates: Exclude ideas with >95% text similarity (case-insensitive) to new idea.
+8. For remaining ideas:
+   a. Calculate cosine similarity: 𝑠𝑖𝑚=𝑑𝑜𝑡(𝐴,𝐵)/(‖𝐴‖‖𝐵‖)
+   b. Convert to 0-100 scale: 𝑠𝑐𝑜𝑟𝑒=𝑟𝑜𝑢𝑛𝑑((𝑠𝑖𝑚+1)×50, 2)
+9. If no ideas remain, return: 
+   "most_similar_idea": null
+10. Else, return the top match ONLY if its score ≥ 20. Otherwise, return null.
 
-// FINAL OUTPUT (JSON ONLY)
-// {
-//   "feasibility_score": <int>,
-//   "idea_category": "<string>",
-//   "idea_cluster": "<string>",
-//   "cluster_id": <int>,
-//   "most_similar_idea": {
-//     "idea_id": "<string> | null",
-//     "similarity_score": <float> | null, // 0-100
-//   }
-// }
-//   `;
+FINAL OUTPUT (JSON ONLY)
+{
+  "feasibility_score": <int>,
+  "idea_category": "<string>",
+  "idea_cluster": "<string>",
+  "cluster_id": <int>,
+  "most_similar_idea": {
+    "idea_id": "<string> | null",
+    "similarity_score": <float> | null, // 0-100
+  }
+}
+  `;
 
-//   const existing_ideas = await fetchIdeas();
-//   const userInput = JSON.stringify({ new_idea, existing_ideas });
+  const existing_ideas = await fetchIdeas();
+  const userInput = JSON.stringify({ new_idea, existing_ideas });
 
-//   const response = await callGemini(systemPrompt, userInput);
-//   console.log(response);
-//   return response;
-// }
+  const response = await callGemini(systemPrompt, userInput);
+  console.log(response);
+  return response;
+}
 
 // // script to update ideas
 
@@ -1278,7 +1278,7 @@ export async function runProcessIdeas() {
 
       const feasibility = await runFeasibilityAnalysis(idea.idea_text);
       const embedding = await generateEmbedding(idea.idea_text);
-      const cluster_id = assignClusterOnline(embedding);
+      const cluster_id = await runClustering(embedding);
 
       console.log({
         id: idea.id,
