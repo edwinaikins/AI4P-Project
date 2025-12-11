@@ -1,5 +1,8 @@
 import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
+import { getIdeaEmbedding } from "../../services/embedding.js";
+import { loadClusters } from "../../services/clustering.js";
+import { assignCluster } from "../../services/clustering.js";
 import { json } from "express";
 
 // format idea parts into an idea_text
