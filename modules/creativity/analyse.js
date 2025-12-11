@@ -17,7 +17,7 @@ const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
 
 const EMBEDDING_MODEL = "text-embedding-005";
-const OUTPUT_DIM = 768;
+const OUTPUT_DIM = 256;
 
 
 //timeout
