@@ -931,12 +931,17 @@ Categorization
 Choose a broad “idea_category” (e.g., Education, Health, Finance, Agriculture, Environment, Governance, etc.).  
 Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
 
+Vector Embedding
+Generate a fixed-length vector embedding for the user idea text using the textembedding-gecko@001 model but **limit the output to 128 dimensions** (to reduce latency or timeout issues).  
+Include this as an array of floats under the key "embedding".
+
 Your response must be returned as **valid JSON only**, with no explanations or extra text.
 OUTPUT should be sticked to the below no matter what:
 {
   "feasiblity score": <float>,
   "idea_category": <str>,
-  "idea_cluster": <str>
+  "idea_cluster": <str>,
+  "embedding": ...
 }
 
 Now evaluate this idea:
