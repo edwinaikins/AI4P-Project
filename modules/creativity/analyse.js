@@ -11,14 +11,11 @@ async function getAuthToken() {
   return tokenResponse.token;
 }
 
-
-
 const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
 
 const EMBEDDING_MODEL = "text-embedding-005";
 const OUTPUT_DIM = 256;
-
 
 //timeout
 function fetchWithTimeout(resource, options = {}, timeout = 30000) {
@@ -40,7 +37,6 @@ function fetchWithTimeout(resource, options = {}, timeout = 30000) {
       });
   });
 }
-
 
 // embedding
 async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
@@ -72,7 +68,7 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
               outputDimensionality: OUTPUT_DIM,
               autoTruncate: true,
             },
-          }),          
+          }),
         },
         30000
       );
@@ -80,13 +76,15 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
       if (!resp.ok) {
         const bodyText = await resp.text().catch(() => "");
         throw new Error(
-          `Embedding model error ${resp.status}. Body: ${bodyText.slice(0, 350)}`
+          `Embedding model error ${resp.status}. Body: ${bodyText.slice(
+            0,
+            350
+          )}`
         );
       }
 
       const data = await resp.json();
       return data.predictions[0].embeddings.values;
-
     } catch (err) {
       console.warn(
         `[VERTEX] Single embedding failed (attempt ${attempt}/3): ${err.message}`
@@ -109,7 +107,6 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
   console.log(`[VERTEX] Single idea embedded successfully.`);
   return embedding;
 }
-
 
 // format idea parts into an idea_text
 function formatIdeaRowAsObject(row) {
@@ -1030,6 +1027,11 @@ export async function runClustering(embedding) {
 
     Assume you have access to a pre-trained K-Means clustering model and its centroids.  
     Your task is to assign the provided embedding vector to the closest centroid.
+
+    The user message will contain a JSON object with a single field:
+{
+  "embedding": [ ... ]
+}
     
     Instructions:
     1. Read the embedding provided in the user message.
@@ -1050,10 +1052,10 @@ export async function runClustering(embedding) {
     Now evaluate this embedding:
     `;
 
-  const userInput = JSON.stringify({embedding});
-  const response = await callGemini(systemPrompt, userInput);
-  console.log(response);
-  return response;
+    const userInput = JSON.stringify({ embedding });
+    const response = await callGemini(systemPrompt, userInput);
+    console.log(response);
+    return response;
   } catch (error) {
     console.log(error);
   }
@@ -1102,7 +1104,7 @@ If the idea is empty (""), too short, or nonsensical, assign "feasibility_score"
 
 Now, evaluate this new idea:
 `;
-  const userInput =  JSON.stringify({new_idea});
+  const userInput = JSON.stringify({ new_idea });
 
   const response = await callGemini(systemPrompt, userInput);
   return response;
@@ -1114,8 +1116,6 @@ export async function runideaEvaluation(new_idea) {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const feasibility = await runFeasibilityAnalysis(new_idea);
     await delay(200);
-    const embedding = await embedIdea(new_idea);
-    await delay(200);
     const clusterId = await runClustering(embedding);
     await delay(200);
     const clarity = await runClarityandCoherenceAnalysis(new_idea);
@@ -1123,6 +1123,8 @@ export async function runideaEvaluation(new_idea) {
     const impact = await runImpactAssessmentAnalysis(new_idea);
     await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
+    await delay(200);
+    const embedding = await embedIdea(new_idea);
     await delay(200);
 
     // Merge all outputs into one JSON
@@ -1132,7 +1134,7 @@ export async function runideaEvaluation(new_idea) {
       embedding,
       ...clarity,
       ...impact,
-      ...ethical
+      ...ethical,
     };
 
     // return evaluation results
@@ -1259,13 +1261,13 @@ export async function runProcessIdeas() {
     `);
 
     const ideaObject = rows.map(formatIdeaAsObject);
-    
+
     for (const row in ideaObject) {
       const response = await runFeasibiltyAnalysis(row.idea_text);
       console.log(response);
     }
 
-   return "Success";
+    return "Success";
   } catch (err) {
     console.error("Fatal Error:", err);
     throw err;
