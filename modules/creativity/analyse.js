@@ -1286,6 +1286,13 @@ export async function runProcessIdeas() {
         cluster_id
       });
 
+      const evaluationResults = {
+        ...feasibility,
+        embedding,
+        ...cluster_id
+      };
+       return evaluationResults;
+
       // OPTIONAL: save results back to DB here
       // await saveIdeaAnalysis(idea.id, feasibility, cluster_id);
     }
