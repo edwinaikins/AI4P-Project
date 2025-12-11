@@ -1,5 +1,16 @@
 import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
+import { GoogleAuth } from "google-auth-library";
+
+async function getAuthToken() {
+  const auth = new GoogleAuth({
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+  });
+  const client = await auth.getClient();
+  const tokenResponse = await client.getAccessToken();
+  return tokenResponse.token;
+}
+
 
 
 const PROJECT_ID = "ai4p-463319";
