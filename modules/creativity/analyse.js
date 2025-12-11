@@ -1236,17 +1236,18 @@ export async function runProcessIdeas() {
       SELECT id, title, content, challenge_name, goal_alignment, 
              problem_description, proposed_solution, industries, technologies
       FROM deep_ideation.ideas
-      LIMIT 2
+      LIMIT 1
     `);
+    console.log(rows);
 
-    // Format the results as expected
-    const existing_ideas = rows.map(formatIdeaAsObject);
+    // // Format the results as expected
+    // const existing_ideas = rows.map(formatIdeaAsObject);
 
-    for (const idea in existing_ideas) {
-      console.log(idea);
-      const response = await runFeasibilityAnalysis(idea.idea_text);
-      console.log(response);
-    }
+    // for (const idea in existing_ideas) {
+    //   console.log(idea);
+    //   const response = await runFeasibilityAnalysis(idea.idea_text);
+    //   console.log(response);
+    // }
 
     return "Success";
   } catch (err) {
