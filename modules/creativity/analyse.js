@@ -919,14 +919,6 @@ export async function runFeasibiltyAnalysis(new_idea) {
   const systemPrompt = `
 You are a senior AI solution architect. For each given idea, you MUST return EXACTLY and ONLY the JSON object described below — no explanations, no text outside the JSON, no extra fields.
 
-REQUIRED OUTPUT FORMAT (strict):
-{
-  "feasibility_score": <integer 0-100>,
-  "idea_category": "<string>",
-  "idea_cluster": "<string>",
-  "cluster_id": <integer>,
-  "embedding": [<float>, <float>, ...] 
-}
 
 RULES:
 Vector Embedding
@@ -948,47 +940,15 @@ Choose a broad “idea_category” (e.g., Education, Health, Finance, Agricultur
 Choose a specific “idea_cluster” (subdomain) aligned with that category (e.g., AI Tutoring, Precision Farming, Fraud Detection, Climate Modeling, Election Monitoring, etc.).
 
 Your response must be returned as **valid JSON only**, with no explanations or extra text.
-
-Examples:
-
-Example 1
-Idea: "A drone fleet that uses onboard computer vision to detect and extinguish wildfires before they spread."
-Output:
+OUTPUT
 {
-  "feasibility_score": 72,
-  "idea_category": "Environment",
-  "idea_cluster": "Wildfire Prevention",
-  "cluster_id": 3,
-  "embedding": [0.12, -0.04, 0.55, ... 128 floats total ...]
+  "feasiblity score": <float>
 }
-
-Example 2
-Idea: "AI that implants ideas into people’s dreams to influence behavior."
-Output:
-{
-  "feasibility_score": 12,
-  "idea_category": "General AI",
-  "idea_cluster": "Speculative Concepts",
-  "cluster_id": 7,
-  "embedding": [-0.22, 0.10, 0.04, ... 128 floats total ...]
-}
-
-Example 3
-Idea: " "
-Output:
-{
-  "feasibility_score": 0,
-  "idea_category": "n/a",
-  "idea_cluster": "n/a",
-  "cluster_id": 0,
-  "embedding": []
-}
-
 
 Now evaluate this idea:
 `;
 
-  const userInput = new_idea;
+  const userInput =  JSON.stringify({new_idea});
 
   return callGemini(systemPrompt, userInput);
 }
@@ -1138,13 +1098,13 @@ export async function runProcessIdeas() {
     `);
 
     const ideaObject = rows.map(formatIdeaAsObject);
-
+    
     for (const row in ideaObject) {
       const response = await runFeasibiltyAnalysis(row.idea_text);
       console.log(response);
     }
 
-    return "Success";
+   return "Success";
   } catch (err) {
     console.error("Fatal Error:", err);
     throw err;
