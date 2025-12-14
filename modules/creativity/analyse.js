@@ -272,8 +272,8 @@ async function insertNewIdea(
     feasibility_score,
     idea_category,
     idea_cluster,
-    cluster_id,
     embedding,
+    cluster_id
   } = evaluationResults;
 
   if (!idea_id) {
@@ -299,8 +299,8 @@ async function insertNewIdea(
         feasibility_score,
         idea_category,
         idea_cluster,
+        embedding.
         cluster_id,
-        embedding,
         challenge,
         author_id,
         created_at,
@@ -329,8 +329,8 @@ async function insertNewIdea(
       feasibility_score,
       idea_category,
       idea_cluster,
-      cluster_id,
       embedding,
+      cluster_id,
       challenge,
       author_id,
       created_at,
@@ -367,8 +367,8 @@ async function insertNewIdea(
         feasibility_score = $12,
         idea_category = $13,
         idea_cluster = $14,
-        cluster_id = $15,
-        embedding = $16,
+        embedding = $15,
+        cluster_id = $16,
         challenge = $17,
         author_id = $18,
         updated_at = $19
@@ -390,8 +390,8 @@ async function insertNewIdea(
       feasibility_score,
       idea_category,
       idea_cluster,
-      cluster_id,
       embedding,
+      cluster_id,
       challenge,
       author_id,
       updated_at,
@@ -920,14 +920,15 @@ export async function runFullAIdeaEvaluation(
     await delay(200);
     const ethical = await runEthicalEvaluationAnalysis(new_idea);
     await delay(200);
-    const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+    // not responding with all necessary details
+    //const feasibility = await runTechnicalFeasibiltyAnalysis(new_idea);
+    const feasibility = await runFeasibilityAnalysis(new_idea);
+    await delay(200);
+    const embedding = await embedIdea(new_idea);
+    await delay(200);
+    const clusterId = await runClustering(embedding);
+    await delay(200);
 
-    // const [clarity, impact, ethical, feasibility] = await Promise.all([
-    //   runClarityandCoherenceAnalysis(new_idea),
-    //   runImpactAssessmentAnalysis(new_idea),
-    //   runEthicalEvaluationAnalysis(new_idea),
-    //   runTechnicalFeasibiltyAnalysis(new_idea),
-    // ]);
 
     // Merge all outputs into one JSON
     const evaluationResults = {
@@ -935,6 +936,8 @@ export async function runFullAIdeaEvaluation(
       ...impact,
       ...ethical,
       ...feasibility,
+      embedding,
+      ...clusterId
     };
 
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
@@ -1134,22 +1137,6 @@ export async function runideaEvaluation(new_idea) {
   }
 }
 
-// // format idea parts into an idea_text
-// function formatIdeaAsObject(row) {
-//   // Construct the idea_text from the descriptive fields only
-//   const ideaTextObject = {
-//     "Idea Title": row.title,
-//     "Content": row.content,
-//     "Problem Description": row.problem_description,
-//     "Proposed Solution": row.proposed_solution,
-//     "Potential Impact": row.potential_impact,
-//   };
-
-//   return {
-//     idea_id: row.id,
-//     idea_text: JSON.stringify(ideaTextObject),
-//   };
-// }
 
 // // Fetch existing ideas with only required fields for idea checker
 async function fetchIdeas() {
