@@ -547,7 +547,7 @@ Before proceeding, ensure that the inputs conform to the following:
   - "cluster_id" (integer from 0 to k‑1)  
   - "idea_category" (string)  
   - "idea_cluster" (string)  
-  - "embedding" (array of numbers, length exactly 128)  
+  - "embedding" (array of numbers, length exactly 128 or 256)  
   - "feasibility_score" (number 0–100)  
   - "clarity_score" (number 0–100)  
   - "impact_score" (number 0–100)  
@@ -939,6 +939,8 @@ export async function runFullAIdeaEvaluation(
       embedding,
       ...clusterId
     };
+
+    console.log(evaluationResults);
 
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
