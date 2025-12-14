@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { analyseClarityandCoherence, analyseCreativity, analyseEthicalEvaluation, analyseImpactAssessment, analyseTechnicalFeasibility, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, processIdeas, stackranking } from '../controllers/analyse.controller.js';
-import { stackranking } from '../modules/creativity/analyse.js';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
