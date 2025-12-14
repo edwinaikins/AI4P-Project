@@ -299,7 +299,7 @@ async function insertNewIdea(
         feasibility_score,
         idea_category,
         idea_cluster,
-        embedding.
+        embedding,
         cluster_id,
         challenge,
         author_id,
@@ -939,8 +939,6 @@ export async function runFullAIdeaEvaluation(
       embedding,
       ...clusterId
     };
-
-    console.log(evaluationResults);
 
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
 
