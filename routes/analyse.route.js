@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { analyseClarityandCoherence, analyseCreativity, analyseEthicalEvaluation, analyseImpactAssessment, analyseTechnicalFeasibility, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, processIdeas } from '../controllers/analyse.controller.js';
+import { analyseClarityandCoherence, analyseCreativity, analyseEthicalEvaluation, analyseImpactAssessment, analyseTechnicalFeasibility, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, processIdeas, stackranking } from '../controllers/analyse.controller.js';
+import { stackranking } from '../modules/creativity/analyse.js';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -18,6 +19,7 @@ router.post('/stackranking', analyseStackRanking);
 // Deep Ideation
 router.post('/analyseidea', analyseIdea);
 router.post('/ideachecker', ideaChecker);
+router.post('/stackrank', stackranking);
 router.post('/processideas', processIdeas);
 
 export default router;

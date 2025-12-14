@@ -273,7 +273,7 @@ async function insertNewIdea(
     idea_category,
     idea_cluster,
     embedding,
-    cluster_id
+    cluster_id,
   } = evaluationResults;
 
   if (!idea_id) {
@@ -623,7 +623,7 @@ Expected Output:
   const existing_ideas = await fetchExistingIdeasForStackRanking(challenge);
   const userInput = JSON.stringify({ existing_ideas });
 
-  console.log(await callGemini(systemPrompt, userInput));
+  //console.log(await callGemini(systemPrompt, userInput));
   return await callGemini(systemPrompt, userInput);
 }
 
@@ -929,7 +929,6 @@ export async function runFullAIdeaEvaluation(
     const clusterId = await runClustering(embedding);
     await delay(200);
 
-
     // Merge all outputs into one JSON
     const evaluationResults = {
       ...clarity,
@@ -937,7 +936,7 @@ export async function runFullAIdeaEvaluation(
       ...ethical,
       ...feasibility,
       embedding,
-      ...clusterId
+      ...clusterId,
     };
 
     const parsedIdea = parseIdeaTextToObject(new_idea); // This should return an object with keys like idea_title, proposed_ai_solution, etc.
@@ -1137,6 +1136,151 @@ export async function runideaEvaluation(new_idea) {
   }
 }
 
+// stack ranking
+export async function stackranking(challenge) {
+  const systemPrompt = `You are IdeaRankerGPT, a senior AI solution architect specialized in prioritizing ideas. Given a batch of ideas, follow the steps below in order:
+
+INPUT VALIDATION  
+Before proceeding, ensure that the inputs conform to the following:  
+- The input is a JSON array.  
+- Each element in the array is an object containing exactly these keys:  
+  - "id" (string)  
+  - "cluster_id" (integer from 0 to k‑1)  
+  - "idea_category" (string)  
+  - "idea_cluster" (string)  
+  - "embedding" (array of numbers, length exactly 128 or 256)  
+  - "feasibility_score" (number 0–100)  
+  - "clarity_score" (number 0–100)  
+  - "impact_score" (number 0–100)  
+  - "ethical_score" (number 0–100)  
+
+If validation fails, return a JSON object with "error" and a descriptive message.
+
+NORMALIZATION  
+For each cluster (grouped by "cluster_id"), normalize the four numeric scores (feasibility_score, clarity_score, impact_score, ethics_score) to a 0–1 scale using min‑max normalization within that cluster.
+
+COMPOSITE SCORE COMPUTATION  
+Compute a weighted composite score for each idea as follows:  
+
+composite_score = (
+  feasibility_score_norm * 0.20 +
+  clarity_score_norm    * 0.10 +
+  impact_score_norm     * 0.40 +
+  ethical_score_norm     * 0.30
+) * 10
+
+Round to the nearest whole number and must be betwwen 1 and 10.
+
+SORTING  
+Sort the list of ideas in descending order of composite_score, whch will be the rank.
+
+FINAL OUTPUT FORMAT  
+Return **only** valid JSON (no commentary) in this exact structure:  
+
+[
+  {
+    "id": "<string>",
+    "rank": <integer>     // 1 = highest composite_score, 2 = next, etc.
+  },
+  ...
+]
+
+
+Example Input:  
+
+[
+  {
+    "id": "idea_001",
+    "cluster_id": 0,
+    "idea_category": "Health",
+    "idea_cluster": "Telemedicine",
+    "embedding": [0.12, -0.03, …],  
+    "feasibility_score": 7,
+    "clarity_score": 8,
+    "impact_score": 9,
+    "ethical_score": 8
+  },
+  {
+    "id": "idea_002",
+    "cluster_id": 1,
+    "idea_category": "Education",
+    "idea_cluster": "EdTech",
+    "embedding": [0.05, 0.15, …],
+    "feasibility_score": 6,
+    "clarity_score": 7,
+    "impact_score": 8,
+    "ethical_score": 9
+  }
+]
+
+
+Expected Output:  
+
+[
+  { "id": "idea_001", "rank": 1 },
+  { "id": "idea_002", "rank": 2 }
+]
+`;
+  const existing_ideas = await fetchIdeasForStackRanking(challenge);
+  const userInput = JSON.stringify({ existing_ideas });
+
+  //console.log(await callGemini(systemPrompt, userInput));
+  return await callGemini(systemPrompt, userInput);
+}
+
+// call stack ranking
+export async function runstackranking(challenge) {
+  try {
+    const rankingresults = await stackranking(challenge);
+    if (rankingresults.error) {
+      throw new Error(rankingresults.error);
+    }
+    return rankingresults;
+  } catch (error) {
+    console.error("Error in runStackRanking:", error);
+    return {
+      status: "error",
+      message: "Failed to run stack ranking.",
+      details: error.message,
+    };
+  }
+}
+
+// Fetch existing ideas with only required fields for stackranking
+// Fetch existing ideas with these fields (id, embedding, cluster_id, feasibility_score, idea_category, idea_cluster, impact_score, ethical_score, clarity_score) for stack ranking based on challenge as a parameter
+async function fetchIdeasForStackRanking(challenge) {
+  try {
+    const { rows } = await pool.query(
+      `
+      SELECT id, embedding, cluster_id, feasibility_score, idea_category,
+      idea_cluster, impact_score, ethical_score, clarity_score
+      FROM deep_ideation.ideas
+      WHERE embedding IS NOT NULL AND cluster_id IS NOT NULL
+      AND challenge = $1
+      ORDER BY created_at DESC
+    `,
+      [challenge]
+    );
+
+    // Format the results as expected
+    const existing_ideas = rows.map((row) => ({
+      id: row.id,
+      embedding: row.embedding || [],
+      cluster_id: row.cluster_id,
+      feasibility_score: row.feasibility_score,
+      idea_category: row.idea_category,
+      idea_cluster: row.idea_cluster,
+      impact_score: row.impact_score,
+      ethical_score: row.ethical_score,
+      clarity_score: row.clarity_score,
+    }));
+
+    return existing_ideas;
+  } catch (error) {
+    console.error("Error fetching existing ideas for stack ranking:", error);
+    throw error;
+  }
+}
 
 // // Fetch existing ideas with only required fields for idea checker
 async function fetchIdeas() {
