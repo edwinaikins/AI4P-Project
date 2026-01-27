@@ -1511,7 +1511,7 @@ function formatIdeaAsObject(row) {
 
 //
 import { ethers } from "ethers";
-import kmeans from "ml-kmeans";
+import { kmeans } from "ml-kmeans";
 
 // ---------------------------
 // CONFIG
