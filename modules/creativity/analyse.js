@@ -1886,7 +1886,7 @@ function categorizeIdea(ideaText) {
   return "Other";
 }
 
-function findBestMatch(candidates) {
+function findBestMatch(newEmbedding, candidates) {
   let best = null;
 
   for (const cand of candidates) {
@@ -1988,7 +1988,7 @@ export async function runSingularityNetIdeaChecker(newIdeaText) {
 
   // 1️⃣ Try marketplace services first
   if (marketplaceCandidates.length > 0) {
-    const bestMarketplace = findBestMatch(marketplaceCandidates);
+    const bestMarketplace = findBestMatch(newEmbedding, marketplaceCandidates);
     if (bestMarketplace && bestMarketplace.score >= 20) {
       best = bestMarketplace;
     }
@@ -1996,7 +1996,7 @@ export async function runSingularityNetIdeaChecker(newIdeaText) {
 
   // 2️⃣ Fallback to GitHub ONLY if no marketplace match
   if (!best && githubCandidates.length > 0) {
-    const bestGithub = findBestMatch(githubCandidates);
+    const bestGithub = findBestMatch(newEmbedding, githubCandidates);
     if (bestGithub && bestGithub.score >= 20) {
       best = bestGithub;
     }
