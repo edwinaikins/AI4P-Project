@@ -1508,3 +1508,429 @@ function formatIdeaAsObject(row) {
     idea_text: formatIdeaAsString(row),
   };
 }
+
+//
+import { ethers } from "ethers";
+import kmeans from "ml-kmeans";
+
+// ---------------------------
+// CONFIG
+// ---------------------------
+const ETH_RPC = process.env.ETH_RPC || "https://cloudflare-eth.com";
+const REGISTRY_ADDRESS = process.env.REGISTRY_ADDRESS || "0xF3E94b3C1F7f5a5cF5D9f4C1b7E69A7c3E0A4B2F";
+const REGISTRY_ABI = [
+  "function getOrganizations() view returns (bytes32[])",
+  "function getServicesForOrganization(bytes32) view returns (bytes32[])",
+  "function isServiceActive(bytes32, bytes32) view returns (bool)",
+  "function getServiceMetadataURI(bytes32, bytes32) view returns (string)"
+];
+
+const GITHUB_ORGS = (process.env.GITHUB_ORGS || "singnet,opencog,singularitynet").split(",").map(s=>s.trim());
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || null;
+
+
+// ---------------------------
+// Marketplace raw fetch (on-chain + IPFS) — returns raw text items (no embeddings, no clusters)
+// ---------------------------
+async function fetchMarketplaceIdeasRaw() {
+  console.log("[SNET-MARKET] Fetching marketplace services on-chain (raw)...");
+  const provider = new ethers.JsonRpcProvider(ETH_RPC);
+  const registry = new ethers.Contract(REGISTRY_ADDRESS, REGISTRY_ABI, provider);
+
+  function decodeId(bytes32) {
+    try {
+      return ethers.decodeBytes32String(bytes32);
+    } catch {
+      if (typeof bytes32 === "string") return bytes32;
+      return String(bytes32);
+    }
+  }
+  function resolveIPFS(uri) {
+    if (!uri) return null;
+    if (uri.startsWith("ipfs://")) return uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+    return uri;
+  }
+
+  const out = [];
+  let orgIds = [];
+  try {
+    orgIds = await registry.getOrganizations();
+  } catch (e) {
+    console.warn("[SNET-MARKET] getOrganizations error:", e.message);
+    return out;
+  }
+
+  for (const orgId of orgIds) {
+    let serviceIds = [];
+    try {
+      serviceIds = await registry.getServicesForOrganization(orgId);
+    } catch (e) {
+      continue;
+    }
+
+    for (const serviceId of serviceIds) {
+      try {
+        const active = await registry.isServiceActive(orgId, serviceId);
+        if (!active) continue;
+        let metadataURI = "";
+        try {
+          metadataURI = await registry.getServiceMetadataURI(orgId, serviceId);
+        } catch {}
+        let metadata = {};
+        if (metadataURI) {
+          try {
+            const url = resolveIPFS(metadataURI);
+            const res = await fetchWithTimeout(url, {}, 10000);
+            if (res.ok) metadata = await res.json();
+          } catch (e) {
+            // ignore IPFS fetch errors
+          }
+        }
+        const org = decodeId(orgId);
+        const svc = decodeId(serviceId);
+        const title = metadata.name || svc;
+        const desc = metadata.description || metadata.long_description || "";
+        const tags = metadata.tags || metadata.categories || [];
+
+        const idea_text = [
+          `Title: ${title}`,
+          `Source: SingularityNET Marketplace`,
+          `Organization: ${org}`,
+          `Service: ${svc}`,
+          `Tags: ${Array.isArray(tags) ? tags.join(", ") : tags}`,
+          `Description:\n${desc}`,
+          `MetadataURI: ${metadataURI || ""}`
+        ].join("\n\n");
+
+        out.push({
+          idea_id: `snet:${org}/${svc}`,
+          idea_text,
+          source: "marketplace",
+          raw_metadata: metadata
+        });
+      } catch (e) {
+        // per-service failures shouldn't break the loop
+        console.warn("[SNET-MARKET] service processing error:", e.message);
+      }
+    }
+  }
+
+  console.log(`[SNET-MARKET] fetched ${out.length} services (raw).`);
+  return out;
+}
+
+// ---------------------------
+// GitHub raw fetch (repos + README) — returns raw text items (no embeddings, no clusters)
+// ---------------------------
+async function fetchGitHubIdeasRaw() {
+  console.log("[GITHUB] Fetching GitHub repos for orgs:", GITHUB_ORGS.join(", "));
+  const headers = { Accept: "application/vnd.github.v3+json" };
+  if (GITHUB_TOKEN) headers.Authorization = `token ${GITHUB_TOKEN}`;
+
+  const out = [];
+
+  for (const org of GITHUB_ORGS) {
+    let page = 1;
+    while (true) {
+      const url = `https://api.github.com/orgs/${org}/repos?per_page=100&page=${page}`;
+      const res = await fetchWithTimeout(url, { headers }, 15000);
+      if (!res.ok) break;
+      const repos = await res.json();
+      if (!repos || repos.length === 0) break;
+
+      for (const r of repos) {
+        try {
+          // fetch raw README
+          const readmeUrl = `https://api.github.com/repos/${org}/${r.name}/readme`;
+          const rres = await fetchWithTimeout(readmeUrl, { headers: { ...headers, Accept: "application/vnd.github.v3.raw" } }, 10000);
+          let readme = "";
+          if (rres.ok) readme = await rres.text();
+
+          const idea_text = [
+            `Title: ${r.full_name}`,
+            `Source: GitHub`,
+            `Repo: ${r.name}`,
+            `Description: ${r.description || ""}`,
+            `README:\n${readme ? readme.slice(0, 20_000) : ""}`
+          ].join("\n\n");
+
+          out.push({
+            idea_id: `github:${r.full_name}`,
+            idea_text,
+            source: "github",
+            raw_repo: { url: r.html_url, language: r.language }
+          });
+        } catch (e) {
+          // swallow per-repo errors
+        }
+      }
+
+      if (repos.length < 100) break;
+      page += 1;
+    }
+  }
+
+  console.log(`[GITHUB] fetched ${out.length} repos (raw).`);
+  return out;
+}
+
+// ---------------------------
+// Grooming: embed -> cluster using YOUR functions (same pipeline for corpus and new idea)
+// ---------------------------
+async function groomIdeaRawItem(rawItem) {
+  // rawItem: { idea_id, idea_text, source, ... }
+  // Returns: { idea_id, idea_text, embedding, cluster_id, source }
+  const embedding = await embedIdea(rawItem.idea_text);
+  let cluster_id = null;
+
+  // Try runClustering (LLM) first. If it fails, fallback to local KMeans later when we have corpus centroids.
+  try {
+    const clusterResp = await runClustering(embedding);
+    if (clusterResp && typeof clusterResp === "object" && "cluster_id" in clusterResp) {
+      cluster_id = Number(clusterResp.cluster_id);
+    } else if (typeof clusterResp === "number") {
+      cluster_id = clusterResp;
+    } else if (typeof clusterResp === "string") {
+      // try parse
+      try {
+        const p = JSON.parse(clusterResp);
+        if (p && typeof p.cluster_id !== "undefined") cluster_id = Number(p.cluster_id);
+      } catch {}
+    }
+  } catch (err) {
+    // LLM not available / failed. We will assign cluster later with local KMeans fallback.
+    cluster_id = null;
+  }
+
+  return {
+    idea_id: rawItem.idea_id,
+    idea_text: rawItem.idea_text,
+    embedding,
+    cluster_id,
+    source: rawItem.source || "unknown"
+  };
+}
+
+// ---------------------------
+// Build full live corpus: fetch raw, groom (embed+try cluster), then fallback local KMeans if any cluster_id null
+// ---------------------------
+async function fetchSingularityNetIdeas() {
+  console.log("[PIPE] Fetching raw marketplace + github items...");
+  const [market, github] = await Promise.all([fetchMarketplaceIdeasRaw(), fetchGitHubIdeasRaw()]);
+  const raw = [...market, ...github];
+  console.log(`[PIPE] total raw items: ${raw.length}`);
+
+  // Groom (embed + try LLM cluster)
+  const groomed = [];
+  for (let i = 0; i < raw.length; i++) {
+    try {
+      const g = await groomIdeaRawItem(raw[i]);
+      groomed.push(g);
+    } catch (e) {
+      console.warn(`[PIPE] groom failed for ${raw[i].idea_id}: ${e.message}`);
+    }
+    // subtle throttle to avoid rate limits
+    await new Promise(res => setTimeout(res, 100));
+  }
+
+  // If any cluster_id is null -> fallback to local KMeans to assign clusters to all embeddings
+  const needFallback = groomed.some(x => x.cluster_id === null || typeof x.cluster_id === "undefined");
+
+  if (needFallback) {
+    console.log("[PIPE] Some items lacked cluster_id from LLM. Running local KMeans fallback for all items to ensure parity.");
+    // build embeddings matrix
+    const embeddings = groomed.map(g => g.embedding.map(Number));
+    const N = embeddings.length || 1;
+    const k = Math.min(50, Math.max(2, Math.round(Math.sqrt(N))));
+    console.log(`[PIPE] local KMeans: N=${N}, k=${k}`);
+    const km = kmeans(embeddings, k, { seed: 42, maxIterations: 100 });
+    // km.clusters length N
+    for (let i = 0; i < groomed.length; i++) {
+      groomed[i].cluster_id = Number(km.clusters[i]);
+    }
+  }
+
+  // Final shape check and return
+  const ideas = groomed.map(g => ({
+    idea_id: g.idea_id,
+    idea_text: g.idea_text,
+    embedding: g.embedding.map(Number),
+    cluster_id: Number(g.cluster_id),
+    source: g.source
+  }));
+
+  console.log(`[PIPE] Groomed corpus ready with ${ideas.length} items.`);
+  return ideas;
+}
+
+// ---------------------------
+// Scoring helpers
+// ---------------------------
+function l2norm(vec) {
+  let s = 0;
+  for (let i = 0; i < vec.length; i++) s += vec[i] * vec[i];
+  return Math.sqrt(s) || 1;
+}
+function cosine(a, b) {
+  let dot = 0;
+  for (let i = 0; i < a.length; i++) dot += a[i]*b[i];
+  const na = l2norm(a);
+  const nb = l2norm(b);
+  return na && nb ? dot/(na*nb) : 0;
+}
+function convertCosineToScore(sim) {
+  return Math.round((sim + 1) * 50 * 100) / 100; // two decimals
+}
+function textSimilarity(a, b) {
+  const tokenize = (s) =>
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter(w => w.length > 2)
+    );
+
+  const A = tokenize(a);
+  const B = tokenize(b);
+
+  if (A.size === 0 || B.size === 0) return 0;
+
+  let intersection = 0;
+  for (const w of A) {
+    if (B.has(w)) intersection++;
+  }
+
+  const union = A.size + B.size - intersection;
+  return intersection / union; // 0 → 1
+}
+
+function removeDuplicatesByText(newText, candidates) {
+  return candidates.filter(c => {
+    const sim = textSimilarity(newText, c.idea_text);
+    return sim <= 0.95;
+  });
+}
+
+function scoreFeasibility(ideaText, source) {
+  const t = ideaText.toLowerCase();
+  let score = 50;
+  if (t.length < 80) score -= 10;
+  if (t.includes("research") || t.includes("theory") || t.includes("explor")) score -= 20;
+  if (t.includes("prototype") || t.includes("production") || t.includes("deployed") || t.includes("demo")) score += 20;
+  if (t.includes("clinical") || t.includes("health") || t.includes("medical")) score -= 5;
+  if (source === "marketplace") score += 10;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  return score;
+}
+function categorizeIdea(ideaText) {
+  const t = ideaText.toLowerCase();
+  const categories = [
+    ["Finance", ["finance", "debt", "trading", "portfolio", "defi", "token", "wallet"]],
+    ["Health", ["health", "medical", "clinical", "diagnos", "imaging"]],
+    ["NLP", ["nlp", "text", "language", "translation", "sentiment"]],
+    ["Vision", ["image", "vision", "segmentation", "detection", "cv"]],
+    ["Robotics", ["robot", "robotics", "actuator", "motion"]],
+    ["Infrastructure", ["compute", "neural", "inference", "distributed", "ipfs", "protocol"]],
+    ["Education", ["education", "tutor", "learning"]],
+  ];
+  for (const [cat, keys] of categories) {
+    for (const k of keys) {
+      if (t.includes(k)) return cat;
+    }
+  }
+  return "Other";
+}
+
+// ---------------------------
+// Final checker: uses identical pipeline for new idea (embed -> cluster) and corpus, then similarity rules
+// ---------------------------
+export async function runSingularityNetIdeaChecker(newIdeaText) {
+  if (typeof newIdeaText !== "string") throw new Error("new idea must be a string");
+
+  console.log("[CHECKER] Building live groomed corpus...");
+  const corpusIdeas = await fetchSingularityNetIdeas(); // each has embedding & cluster_id
+
+  console.log("[CHECKER] Grooming the new idea via SAME pipeline (embed + cluster)...");
+  const newEmbedding = await embedIdea(newIdeaText);
+
+  // Attempt LLM runClustering for new idea; fallback to nearest-centroid (local KMeans over corpus)
+  let newClusterId = null;
+  try {
+    const clusterResp = await runClustering(newEmbedding);
+    if (clusterResp && typeof clusterResp === "object" && "cluster_id" in clusterResp) {
+      newClusterId = Number(clusterResp.cluster_id);
+    }
+  } catch (e) {
+    // fallback: find nearest centroid from corpus by running local KMeans centroids
+    console.warn("[CHECKER] runClustering failed for new idea, using local nearest-centroid fallback.");
+    const embeddings = corpusIdeas.map(c => c.embedding);
+    const N = embeddings.length || 1;
+    const k = Math.min(50, Math.max(2, Math.round(Math.sqrt(N))));
+    // run KMeans to get centroids
+    const km = kmeans(embeddings, Math.min(k, embeddings.length), { seed: 42, maxIterations: 100 });
+    // compute nearest centroid
+    let bestSim = -Infinity;
+    let bestIdx = 0;
+    for (let i = 0; i < km.centroids.length; i++) {
+      const centroid = km.centroids[i].centroid;
+      const sim = cosine(newEmbedding, centroid);
+      if (sim > bestSim) { bestSim = sim; bestIdx = i; }
+    }
+    newClusterId = Number(bestIdx);
+  }
+
+  // feasibility & category
+  const feasibility_score = await runFeasibilityAnalysis(newIdeaText);//scoreFeasibility(newIdeaText, "submission");
+  //const idea_category = categorizeIdea(newIdeaText);
+  const idea_cluster = `cluster_${newClusterId}`;
+
+  // similarity logic (filter by same cluster)
+  const sameCluster = corpusIdeas.filter(c => c.cluster_id === newClusterId);
+
+  // remove duplicates (>95% text similarity)
+  const deduped = removeDuplicatesByText(newIdeaText, sameCluster);
+
+  if (deduped.length === 0) {
+    return {
+      feasibility_score,
+      //idea_category,
+      idea_cluster,
+      cluster_id: Number(newClusterId),
+      most_similar_idea: { idea_id: null, similarity_score: null }
+    };
+  }
+
+  // compute cosine similarity and pick best
+  let best = null;
+  for (const cand of deduped) {
+    const sim = cosine(newEmbedding, cand.embedding);
+    const score = convertCosineToScore(sim);
+    if (!best || score > best.score) {
+      best = { idea_id: cand.idea_id, score, sim };
+    }
+  }
+
+  if (!best || best.score < 20) {
+    return {
+      feasibility_score,
+      //idea_category,
+      idea_cluster,
+      cluster_id: Number(newClusterId),
+      most_similar_idea: { idea_id: null, similarity_score: null }
+    };
+  }
+
+  return {
+    feasibility_score,
+    //idea_category,
+    idea_cluster,
+    cluster_id: Number(newClusterId),
+    most_similar_idea: {
+      idea_id: best.idea_id,
+      similarity_score: Number(best.score)
+    }
+  };
+}
+
+

@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runProcessIdeas, runstackranking } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessmentAnalysis, runEthicalEvaluationAnalysis, runClarityandCoherenceAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runProcessIdeas, runstackranking, runSingularityNetIdeaChecker } from '../modules/creativity/analyse.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
@@ -215,6 +215,22 @@ export const stackranking = async (req, res) => {
 };
 
 
+//snetideachecker
+export const snetideachecker= async (req, res) => {
+  const {newIdeaText} = req.body;
+
+  if (typeof newIdeaText !== 'string'){
+    return res.status(400).json({ error: 'Invalid input format'});
+  }
+
+  try {
+    const result = await runSingularityNetIdeaChecker(newIdeaText);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Model or server error', details: err.message});
+  }
+};
 
 // script
 export const processIdeas = async (req, res) => {
