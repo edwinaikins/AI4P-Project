@@ -2026,7 +2026,7 @@ export async function runSingularityNetIdeaChecker(newIdeaText) {
       feasibility_score,
       idea_cluster,
       cluster_id: Number(newClusterId),
-      most_similar_idea: { idea_id: null, similarity_score: null }
+      most_similar_idea: { idea_id: null, similarity_score: null },
     };
   }
 
@@ -2041,3 +2041,4 @@ export async function runSingularityNetIdeaChecker(newIdeaText) {
     },
   };
 }
+
