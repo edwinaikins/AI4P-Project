@@ -134,11 +134,19 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
 }
 
 function ensureClusters(ideas) {
+  const validIdeas = ideas.filter(
+    (i) => Array.isArray(i.embedding) && i.embedding.length > 0
+  );
+
+  if (validIdeas.length === 0) {
+    throw new Error("No valid embeddings available for clustering.");
+  }
+
   const needsClustering = ideas.some((i) => i.cluster_id == null);
 
   if (!needsClustering && GLOBAL_CENTROIDS) return;
 
-  const embeddings = ideas.map((i) => i.embedding.map(Number));
+  const embeddings = validIdeas.map((i) => i.embedding.map(Number));
   const N = embeddings.length || 1;
   const K = Math.min(50, Math.max(2, Math.round(Math.sqrt(N))));
 
@@ -151,8 +159,8 @@ function ensureClusters(ideas) {
 
   GLOBAL_CENTROIDS = km.centroids.map((c) => c.centroid);
 
-  for (let i = 0; i < ideas.length; i++) {
-    ideas[i].cluster_id = Number(km.clusters[i]);
+  for (let i = 0; i < validIdeas.length; i++) {
+    validIdeas[i].cluster_id = Number(km.clusters[i]);
   }
 }
 
@@ -169,6 +177,10 @@ function cosineSimilarity(a, b) {
 }
 
 function assignClusterFromCentroids(embedding) {
+  if (!Array.isArray(embedding) || embedding.length === 0) {
+    throw new Error("Invalid embedding for new idea");
+  }
+
   if (!GLOBAL_CENTROIDS || GLOBAL_CENTROIDS.length === 0) {
     throw new Error("Centroids not initialized. Call ensureClusters first.");
   }
@@ -177,6 +189,12 @@ function assignClusterFromCentroids(embedding) {
   let bestSim = -Infinity;
 
   for (let i = 0; i < GLOBAL_CENTROIDS.length; i++) {
+    const centroid = GLOBAL_CENTROIDS[i];
+
+    if (!Array.isArray(centroid) || centroid.length !== embedding.length) {
+      continue; // skip broken centroid
+    }
+    
     const sim = cosineSimilarity(embedding, GLOBAL_CENTROIDS[i]);
     if (sim > bestSim) {
       bestSim = sim;
@@ -404,7 +422,7 @@ async function buildUnifiedCorpus() {
   // Only embed + cluster if missing
   const groomed = [];
   for (const item of raw) {
-    if (!item.embedding) {
+    if (!Array.isArray(item.embedding) || item.embedding.length === 0) {
       item.embedding = await embedIdea(item.idea_text);
     }
     groomed.push(item);
