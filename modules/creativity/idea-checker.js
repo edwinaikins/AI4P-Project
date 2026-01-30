@@ -134,6 +134,55 @@ async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
   return embedding;
 }
 
+// ---------------------------
+// Scoring helpers
+// ---------------------------
+function l2norm(vec) {
+  let s = 0;
+  for (let i = 0; i < vec.length; i++) s += vec[i] * vec[i];
+  return Math.sqrt(s) || 1;
+}
+function cosine(a, b) {
+  let dot = 0;
+  for (let i = 0; i < a.length; i++) dot += a[i] * b[i];
+  const na = l2norm(a);
+  const nb = l2norm(b);
+  return na && nb ? dot / (na * nb) : 0;
+}
+function convertCosineToScore(sim) {
+  return Math.round((sim + 1) * 50 * 100) / 100; // two decimals
+}
+function textSimilarity(a, b) {
+  const tokenize = (s) =>
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+    );
+
+  const A = tokenize(a);
+  const B = tokenize(b);
+
+  if (A.size === 0 || B.size === 0) return 0;
+
+  let intersection = 0;
+  for (const w of A) {
+    if (B.has(w)) intersection++;
+  }
+
+  const union = A.size + B.size - intersection;
+  return intersection / union; // 0 → 1
+}
+
+function removeDuplicatesByText(newText, candidates) {
+  return candidates.filter((c) => {
+    const sim = textSimilarity(newText, c.idea_text);
+    return sim <= 0.95;
+  });
+}
+
 function ensureClusters(ideas) {
   const validIdeas = ideas.filter(
     (i) => Array.isArray(i.embedding) && i.embedding.length > 0
