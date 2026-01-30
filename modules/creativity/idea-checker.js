@@ -1,4 +1,4 @@
-import { callLLM } from "../../services/genai.service.js";
+import { callGemini } from "../../services/genai.service.js";
 import { pool } from "../../config/db.js";
 import { GoogleAuth } from "google-auth-library";
 import { ethers } from "ethers";
@@ -543,7 +543,7 @@ async function explainSimilarity({
     shared_keywords: sharedKeywords,
   });
 
-  return await callLLM(systemPrompt, userPrompt);
+  return await callGemini(systemPrompt, userPrompt);
 }
 
 export async function runUnifiedIdeaChecker(newIdeaText) {
