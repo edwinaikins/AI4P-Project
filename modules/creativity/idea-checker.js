@@ -525,25 +525,38 @@ async function explainSimilarity({
   const systemPrompt = `
   You are an AI reviewer explaining why two ideas are similar.
   
-  Rules:
+  STRICT RULES:
+  - You MUST return valid JSON only
+  - Do NOT include markdown, bullets, or prose outside JSON
   - Do NOT calculate similarity
   - Do NOT suggest acceptance or rejection
-  - Explain overlap and differences clearly
-  - 3–6 bullet points maximum
+  
+  OUTPUT FORMAT (JSON ONLY):
+  {
+    "explanation_points": [
+      "string",
+      "string"
+    ]
+  }
   `;
 
   const userPrompt = JSON.stringify({
-    new_idea: newIdeaText,
+    new_idea: newIdeaText.slice(0, 800),
     matched_idea: {
       idea_id: matchedIdea.idea_id,
       source: matchedIdea.source,
-      text: matchedIdea.idea_text,
+      text: matchedIdea.idea_text.slice(0, 800),
     },
     similarity_score: similarityScore,
     shared_keywords: sharedKeywords,
   });
 
-  return await callGemini(systemPrompt, userPrompt);
+  const response = await callGemini(systemPrompt, userPrompt);
+
+  // Normalize output
+  return Array.isArray(response.explanation_points)
+    ? response.explanation_points
+    : [];
 }
 
 export async function runUnifiedIdeaChecker(newIdeaText) {
@@ -565,12 +578,17 @@ export async function runUnifiedIdeaChecker(newIdeaText) {
       matchedIdea.idea_text
     );
 
-    explanation = await explainSimilarity({
-      newIdeaText,
-      matchedIdea,
-      similarityScore: bestMatch.score,
-      sharedKeywords,
-    });
+    try {
+      explanation = await explainSimilarity({
+        newIdeaText,
+        matchedIdea,
+        similarityScore: bestMatch.score,
+        sharedKeywords,
+      });
+    } catch (error) {
+      console.warn("[EXPLAIN] Failed, continuing without explanation");
+      explanation = null;
+    }
   }
 
   return {
