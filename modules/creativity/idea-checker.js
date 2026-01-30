@@ -2,6 +2,7 @@ import { pool } from "../../config/db.js";
 import { GoogleAuth } from "google-auth-library";
 import { ethers } from "ethers";
 import { kmeans } from "ml-kmeans";
+import { runFeasibilityAnalysis } from "./analyse.js";
 
 // ---------------------------
 // CONFIG
@@ -194,7 +195,7 @@ function assignClusterFromCentroids(embedding) {
     if (!Array.isArray(centroid) || centroid.length !== embedding.length) {
       continue; // skip broken centroid
     }
-    
+
     const sim = cosineSimilarity(embedding, GLOBAL_CENTROIDS[i]);
     if (sim > bestSim) {
       bestSim = sim;
