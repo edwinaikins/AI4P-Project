@@ -54,21 +54,8 @@ export async function runIdeaCheckerWithContext({
   // --------------------------------------------
   // 3. Remove near-duplicates by text
   // --------------------------------------------
-  const normalized = sameCluster.map((c) => ({
-    ...c,
-    idea_text:
-      typeof c.idea_text === "string"
-        ? c.idea_text
-        : typeof c.problem_statement === "string"
-        ? c.problem_statement
-        : typeof c.description === "string"
-        ? c.description
-        : typeof c.title === "string"
-        ? c.title
-        : "",
-  }));
-
-  const deduped = removeDuplicatesByText(ideaText, normalized);
+  
+  const deduped = removeDuplicatesByText(ideaText, sameCluster);
 
   let best = null;
 
@@ -81,6 +68,7 @@ export async function runIdeaCheckerWithContext({
     const sim = cosine(embedding, candidate.embedding);
     const score = convertCosineToScore(sim);
 
+    
     if (!best || score > best.score) {
       best = {
         idea_id: candidate.idea_id,
