@@ -74,8 +74,13 @@ export default {
           ctx.final.idea_category = result.idea_category ?? null;
           ctx.final.idea_cluster = result.idea_cluster ?? null;
         }
-        ctx.final[agent.outputKey] =
-          typeof result?.score === "number" ? result.score : null;
+        // -------------------------------
+        // SCORING AGENTS ONLY
+        // -------------------------------
+        else {
+          ctx.final[agent.outputKey] =
+            typeof result?.score === "number" ? result.score : null;
+        }
 
         // Keep full agent output for audits / debugging
         ctx.results[agent.id] = result;
