@@ -39,7 +39,7 @@ export default {
     `;
 
     const userInput = `IDEA:
-    ${ideaText}
+    ${new_idea}
     
     CHALLENGE DESCRIPTION:
     ${challengeContext?.description ?? "N/A"}
@@ -50,7 +50,14 @@ export default {
     EXCLUSIONS:
     ${(challengeContext?.exclusions || []).join("; ")}`.trim();
 
-    const response = await callGemini(systemPrompt, userInput);
-    return response;
+    try {
+      return await callGemini(systemPrompt, userInput);
+    } catch (error) {
+      if (String(err.message).includes("429")) {
+        await sleep(1000);
+        return await callGemini(systemPrompt, userInput);
+      }
+      throw error;
+    }
   },
 };

@@ -34,7 +34,14 @@ Return valid JSON only:
 Evaluate the following idea:    
 `;
 
-    const response = await callGemini(prompt, new_idea);
-    return response;
+try {
+  return await callGemini(prompt, new_idea);
+} catch (error) {
+  if (String(err.message).includes("429")) {
+    await sleep(1000);
+    return await callGemini(prompt, new_idea);
+  }
+  throw error;
+}
   },
 };
