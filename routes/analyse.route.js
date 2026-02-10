@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { analyseClarityandCoherence, analyseCreativity, analyseEthicalEvaluation, analyseImpactAssessment, analyseTechnicalFeasibility, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, processIdeas, stackranking, snetideachecker, unifiedIdeaChecker } from '../controllers/analyse.controller.js';
+import { analyseClarityandCoherence, analyseCreativity, analyseEthicalEvaluation, analyseImpactAssessment, analyseTechnicalFeasibility, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, processIdeas, stackranking, snetideachecker, unifiedIdeaChecker, agenticIdeaAnalyses } from '../controllers/analyse.controller.js';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -26,5 +26,6 @@ router.post('/snetideachecker', snetideachecker);
 
 //unified
 router.post('/unifiedideachecker', unifiedIdeaChecker);
+router.post('/submitidea', agenticIdeaAnalyses);
 
 export default router;

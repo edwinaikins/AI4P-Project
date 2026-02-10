@@ -2,6 +2,7 @@ import { runCreativityAnalysis, runTechnicalFeasibiltyAnalysis, runImpactAssessm
 import { runUnifiedIdeaChecker } from '../modules/creativity/idea-checker.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { runAgenticEvaluation } from '../modules/orchestrator/index.js';
 
 
 export const analyseCreativity = async (req, res) => {
@@ -109,6 +110,22 @@ export const analyseFullIdea = async (req, res) => {
 
   try {
     const result = await runFullAIdeaEvaluation(new_idea, challenge, author_id, idea_id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server or model error', details: err.message });
+  }
+};
+
+// Agentic Approach to idea submission with idea similarity check
+export const agenticIdeaAnalyses = async (req, res) => {
+  const { ideaText, challengeConfig, author_id, idea_id } = req.body;
+
+  if (typeof new_idea !== 'string' || new_idea.trim() === '') {
+    return res.status(400).json({ error: 'Invalid or empty idea provided.' });
+  }
+
+  try {
+    const result = await runAgenticEvaluation(ideaText, challengeConfig, author_id, idea_id);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Server or model error', details: err.message });
