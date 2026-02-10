@@ -1,5 +1,10 @@
-import { fetchDeepIdeas, cosine, convertCosineToScore, removeDuplicatesByText, explainSimilarity } from "../utils/index.js";
-
+import {
+  fetchDeepIdeas,
+  cosine,
+  convertCosineToScore,
+  removeDuplicatesByText,
+  explainSimilarity,
+} from "../utils/index.js";
 
 export async function runIdeaCheckerWithContext({
   ideaText,
@@ -12,7 +17,7 @@ export async function runIdeaCheckerWithContext({
   if (
     !Array.isArray(embedding) ||
     embedding.length === 0 ||
-    embedding.every(v => v === 0)
+    embedding.every((v) => v === 0)
   ) {
     return {
       similarity_score: null,
@@ -36,9 +41,7 @@ export async function runIdeaCheckerWithContext({
   // 2. Restrict to same cluster
   // --------------------------------------------
   const sameCluster = corpus.filter(
-    idea =>
-      idea.cluster_id === cluster_id &&
-      Array.isArray(idea.embedding)
+    (idea) => idea.cluster_id === cluster_id && Array.isArray(idea.embedding)
   );
 
   if (sameCluster.length === 0) {
@@ -51,7 +54,21 @@ export async function runIdeaCheckerWithContext({
   // --------------------------------------------
   // 3. Remove near-duplicates by text
   // --------------------------------------------
-  const deduped = removeDuplicatesByText(ideaText, sameCluster);
+  const normalized = sameCluster.map((c) => ({
+    ...c,
+    idea_text:
+      typeof c.idea_text === "string"
+        ? c.idea_text
+        : typeof c.problem_statement === "string"
+        ? c.problem_statement
+        : typeof c.description === "string"
+        ? c.description
+        : typeof c.title === "string"
+        ? c.title
+        : "",
+  }));
+
+  const deduped = removeDuplicatesByText(ideaText, normalized);
 
   let best = null;
 
@@ -68,7 +85,7 @@ export async function runIdeaCheckerWithContext({
       best = {
         idea_id: candidate.idea_id,
         score,
-        candidate
+        candidate,
       };
     }
   }
@@ -93,7 +110,7 @@ export async function runIdeaCheckerWithContext({
       newIdeaText: ideaText,
       matchedIdea: best.candidate,
       similarityScore: best.score,
-      sharedKeywords: [] // optional, can add later
+      sharedKeywords: [], // optional, can add later
     });
   } catch {
     explanation = null;
@@ -107,8 +124,7 @@ export async function runIdeaCheckerWithContext({
     most_similar_idea: {
       idea_id: best.idea_id,
       similarity_score: best.score,
-      explanation
-    }
+      explanation,
+    },
   };
 }
-
