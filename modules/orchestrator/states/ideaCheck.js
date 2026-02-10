@@ -1,5 +1,5 @@
 import { runIdeaCheckerWithContext } from "../../creativity/idea-checker-adapter.js";
-import FinalizeState from "./finalize.js";
+import FinalizeState from "./finialize.js";
 
 export default {
   async run(ctx, machine) {

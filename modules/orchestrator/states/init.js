@@ -1,5 +1,5 @@
 // states/init.js
-import PlanState from "./plan.js"
+import PlanState from "./plan.js";
 
 export default {
   async run(ctx, machine) {
