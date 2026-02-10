@@ -53,7 +53,7 @@ export default {
     try {
       return await callGemini(systemPrompt, userInput);
     } catch (error) {
-      if (String(err.message).includes("429")) {
+      if (String(error.message).includes("429")) {
         await sleep(1000);
         return await callGemini(systemPrompt, userInput);
       }

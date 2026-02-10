@@ -37,7 +37,7 @@ Evaluate the following idea:
 try {
   return await callGemini(prompt, new_idea);
 } catch (error) {
-  if (String(err.message).includes("429")) {
+  if (String(error.message).includes("429")) {
     await sleep(1000);
     return await callGemini(prompt, new_idea);
   }
