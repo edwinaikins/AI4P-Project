@@ -118,14 +118,14 @@ export const analyseFullIdea = async (req, res) => {
 
 // Agentic Approach to idea submission with idea similarity check
 export const agenticIdeaAnalyses = async (req, res) => {
-  const { new_idea, challengeConfig, author_id, idea_id } = req.body;
+  const { new_idea, challengeConfig } = req.body;
 
   if (typeof new_idea !== 'string' || new_idea.trim() === '') {
     return res.status(400).json({ error: 'Invalid or empty idea provided.' });
   }
 
   try {
-    const result = await runAgenticEvaluation({new_idea, challengeConfig, author_id, idea_id});
+    const result = await runAgenticEvaluation({new_idea, challengeConfig});
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Server or model error', details: err.message });
