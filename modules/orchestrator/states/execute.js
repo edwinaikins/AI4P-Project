@@ -56,11 +56,11 @@ export default {
         agent.id === "context_awareness" ||
         agent.id === "challenge_alignment"
           ? {
-              ideaText: ctx.ideaText,
+              new_idea: ctx.new_idea,
               challengeContext: ctx.challengeConfig,
             }
           : {
-              ideaText: ctx.ideaText,
+              new_idea: ctx.new_idea,
             };
 
       try {

@@ -2,13 +2,13 @@ import { StateMachine } from "./stateMachine.js";
 import InitState from "./states/init.js";
 
 export async function runAgenticEvaluation({
-  ideaText,
+  new_idea,
   challengeConfig,
   author_id,
   idea_id,
 }) {
   const context = {
-    ideaText,
+    new_idea,
     challengeConfig,
     author_id,
     idea_id,
