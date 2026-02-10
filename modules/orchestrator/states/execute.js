@@ -53,8 +53,7 @@ export default {
 
       // Build agent input
       const agentInput =
-        agent.id === "context_awareness" ||
-        agent.id === "challenge_alignment"
+        agent.id === "context_awareness" || agent.id === "challenge_alignment"
           ? {
               new_idea: ctx.new_idea,
               challengeContext: ctx.challengeConfig,
@@ -66,7 +65,15 @@ export default {
       try {
         const result = await agent.run(agentInput);
 
-        // Persist ONLY the score into final (DB-safe)
+        // -------------------------------
+        // CLASSIFICATION AGENT
+        // -------------------------------
+        if (agent.id === "classification") {
+          ctx.results.classification = result;
+
+          ctx.final.idea_category = result.idea_category ?? null;
+          ctx.final.idea_cluster = result.idea_cluster ?? null;
+        }
         ctx.final[agent.outputKey] =
           typeof result?.score === "number" ? result.score : null;
 

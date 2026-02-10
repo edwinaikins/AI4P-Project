@@ -16,9 +16,11 @@ export default {
     }));
 
     // Always include classification unless explicitly disabled
-    if (!ctx.plan.includes("classification")) {
+    if (!ctx.plan.some((p) => p.agentId === "classification")) {
       ctx.plan.push({
-        agent: "classification",
+        step: ctx.plan.length + 1,
+        agentId: "classification",
+        outputKey: "classification",
       });
     }
 

@@ -15,19 +15,28 @@ export default {
 
     if (ctx.results?.cluster) {
       ctx.final.cluster_id = ctx.results.cluster.cluster_id ?? null;
-      ctx.final.idea_cluster = ctx.results.classification.idea_cluster ?? "Unclassified";
-      ctx.final.idea_category = ctx.results.classification.idea_category ?? "Uncategorized";
     }
 
+    // DO NOT override idea_cluster if classification set it
+    if (!ctx.final.idea_cluster && ctx.results?.classification?.idea_cluster) {
+      ctx.final.idea_cluster = ctx.results.classification.idea_cluster;
+    }
+
+    if (
+      !ctx.final.idea_category &&
+      ctx.results?.classification?.idea_category
+    ) {
+      ctx.final.idea_category = ctx.results.classification.idea_category;
+    }
 
     ctx.logs.push({
       state: "AGGREGATE",
-      scores_collected: Object.keys(ctx.final).filter(k =>
+      scores_collected: Object.keys(ctx.final).filter((k) =>
         k.endsWith("_score")
       ),
-      ok: true
+      ok: true,
     });
 
     return machine.transition(ideaCheckState);
-  }
+  },
 };

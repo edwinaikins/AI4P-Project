@@ -59,6 +59,7 @@ export const AGENT_REGISTRY = {
         ideaText: ctx.ideaText,
         challengeConfig: ctx.challengeConfig,
       }),
+    id: "classification",
     outputKey: "classification",
   },
 };
