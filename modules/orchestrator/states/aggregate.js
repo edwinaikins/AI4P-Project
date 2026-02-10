@@ -1,5 +1,4 @@
 // states/aggregate.js
-import FinalizeState from "./finalize.js";
 import ideaCheckState from "./ideaCheck.js";
 
 export default {
