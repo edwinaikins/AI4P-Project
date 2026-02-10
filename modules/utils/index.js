@@ -20,6 +20,27 @@ async function getAuthToken() {
   return tokenResponse.token;
 }
 
+//timeout
+export function fetchWithTimeout(resource, options = {}, timeout = 30000) {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    fetch(resource, {
+      ...options,
+      signal: controller.signal,
+    })
+      .then((response) => {
+        clearTimeout(id);
+        resolve(response);
+      })
+      .catch((error) => {
+        clearTimeout(id);
+        reject(error);
+      });
+  });
+}
+
 // embedding
 export async function embedIdea(ideaText, model = EMBEDDING_MODEL) {
   if (!ideaText) return [];

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { runFeasibilityAnalysis } from "./analyse.js";
-import { embedIdea, ensureClusters, assignClusterFromCentroids, removeDuplicatesByText, cosine, convertCosineToScore, extractSharedKeywords, explainSimilarity, fetchDeepIdeas} from "../utils/index.js";
+import { embedIdea, ensureClusters, assignClusterFromCentroids, removeDuplicatesByText, cosine, convertCosineToScore, extractSharedKeywords, explainSimilarity, fetchDeepIdeas, fetchWithTimeout} from "../utils/index.js";
 
 // ---------------------------
 // CONFIG
@@ -24,26 +24,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || null;
 
 
 
-//timeout
-function fetchWithTimeout(resource, options = {}, timeout = 30000) {
-  return new Promise((resolve, reject) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
 
-    fetch(resource, {
-      ...options,
-      signal: controller.signal,
-    })
-      .then((response) => {
-        clearTimeout(id);
-        resolve(response);
-      })
-      .catch((error) => {
-        clearTimeout(id);
-        reject(error);
-      });
-  });
-}
 
 
 // ---------------------------
