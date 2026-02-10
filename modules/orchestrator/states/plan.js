@@ -15,6 +15,13 @@ export default {
       outputKey: agent.outputKey,
     }));
 
+    // Always include classification unless explicitly disabled
+    if (!ctx.plan.includes("classification")) {
+      ctx.plan.push({
+        agent: "classification",
+      });
+    }
+
     ctx.logs.push({
       state: "PLAN",
       agents: ctx.plan.map((p) => p.agentId),

@@ -15,7 +15,8 @@ export default {
 
     if (ctx.results?.cluster) {
       ctx.final.cluster_id = ctx.results.cluster.cluster_id ?? null;
-      ctx.final.idea_cluster = ctx.results.cluster.idea_cluster ?? null;
+      ctx.final.idea_cluster = ctx.results.classification.idea_cluster ?? "Unclassified";
+      ctx.final.idea_category = ctx.results.classification.idea_category ?? "Uncategorized";
     }
 
 

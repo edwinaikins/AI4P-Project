@@ -24,6 +24,8 @@ import context_awareness from "./context_awareness.agent.js";
 import adoption_plausibility from "./adoption_plausibility.agent.js";
 import challenge_alignment from "./challenge_alignment.agent.js";
 
+import { runClassificationAgent } from "./classification.js";
+
 export const AGENT_REGISTRY = {
   conceptual_feasibility,
   technical_direction_clarity,
@@ -50,4 +52,13 @@ export const AGENT_REGISTRY = {
   context_awareness,
   adoption_plausibility,
   challenge_alignment,
+
+  classification: {
+    run: async (ctx) =>
+      runClassificationAgent({
+        ideaText: ctx.ideaText,
+        challengeConfig: ctx.challengeConfig,
+      }),
+    outputKey: "classification",
+  },
 };
