@@ -24,6 +24,8 @@ import context_awareness from "./context_awareness.agent.js";
 import adoption_plausibility from "./adoption_plausibility.agent.js";
 import challenge_alignment from "./challenge_alignment.agent.js";
 
+import classification from "./classification.js";
+
 //import classification, { runClassificationAgent } from "./classification.js";
 
 export const AGENT_REGISTRY = {
