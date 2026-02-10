@@ -82,6 +82,9 @@ export default {
         //     typeof result?.score === "number" ? result.score : null;
         // }
 
+        ctx.final[agent.outputKey] =
+          typeof result?.score === "number" ? result.score : null;
+
         // Keep full agent output for audits / debugging
         ctx.results[agent.id] = result;
 
