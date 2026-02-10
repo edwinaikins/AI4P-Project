@@ -71,9 +71,12 @@ Return ONLY JSON. No markdown. No commentary.
 `;
 
 export async function runClassificationAgent({ new_idea, challengeConfig }) {
-  if (!new_idea || typeof new_idea !== "string") {
+  if (!new_idea) {
     throw new Error("Missing idea text for classification agent");
   }
+
+  const ideaText =
+    typeof new_idea === "string" ? new_idea : JSON.stringify(new_idea, null, 2);
 
   const challengeContext = challengeConfig
     ? `
@@ -89,9 +92,10 @@ ${
 `
     : "";
 
+
   const userPrompt = `
 IDEA:
-${new_idea}
+${ideaText}
 
 ${challengeContext}
 `;
