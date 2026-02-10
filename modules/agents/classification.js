@@ -91,7 +91,7 @@ ${
 
   const userPrompt = `
 IDEA:
-${ideaText}
+${new_idea}
 
 ${challengeContext}
 `;
