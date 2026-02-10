@@ -2,7 +2,7 @@
 
 import AggregateState from "./aggregate.js";
 import { AGENT_REGISTRY } from "../../agents/registry.js";
-import { embedIdea, runClustering } from "../../creativity/analyse.js"
+import { embedIdea, runClustering } from "../../utils/index.js";
 
 export default {
   async run(ctx, machine) {
