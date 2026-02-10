@@ -17,17 +17,17 @@ export default {
       ctx.final.cluster_id = ctx.results.cluster.cluster_id ?? null;
     }
 
-    // DO NOT override idea_cluster if classification set it
-    if (!ctx.final.idea_cluster && ctx.results?.classification?.idea_cluster) {
-      ctx.final.idea_cluster = ctx.results.classification.idea_cluster;
-    }
+    // // DO NOT override idea_cluster if classification set it
+    // if (!ctx.final.idea_cluster && ctx.results?.classification?.idea_cluster) {
+    //   ctx.final.idea_cluster = ctx.results.classification.idea_cluster;
+    // }
 
-    if (
-      !ctx.final.idea_category &&
-      ctx.results?.classification?.idea_category
-    ) {
-      ctx.final.idea_category = ctx.results.classification.idea_category;
-    }
+    // if (
+    //   !ctx.final.idea_category &&
+    //   ctx.results?.classification?.idea_category
+    // ) {
+    //   ctx.final.idea_category = ctx.results.classification.idea_category;
+    // }
 
     ctx.logs.push({
       state: "AGGREGATE",
