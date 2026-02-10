@@ -70,8 +70,8 @@ IMPORTANT RULES
 Return ONLY JSON. No markdown. No commentary.
 `;
 
-export async function runClassificationAgent({ ideaText, challengeConfig }) {
-  if (!ideaText || typeof ideaText !== "string") {
+export async function runClassificationAgent({ new_idea, challengeConfig }) {
+  if (!new_idea || typeof new_idea !== "string") {
     throw new Error("Missing idea text for classification agent");
   }
 
