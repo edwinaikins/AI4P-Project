@@ -17,7 +17,7 @@ export default {
 
     try {
       if (!ctx.results.embedding) {
-        ctx.results.embedding = await embedIdea(ctx.ideaText);
+        ctx.results.embedding = await embedIdea(ctx.new_idea);
       }
 
       if (!ctx.results.cluster) {

@@ -3,15 +3,11 @@ import InitState from "./states/init.js";
 
 export async function runAgenticEvaluation({
   new_idea,
-  challengeConfig,
-  author_id,
-  idea_id,
+  challengeConfig
 }) {
   const context = {
     new_idea,
     challengeConfig,
-    author_id,
-    idea_id,
     plan: [],
     results: {},
     final: null,
