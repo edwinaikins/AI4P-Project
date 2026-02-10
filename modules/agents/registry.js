@@ -56,7 +56,7 @@ export const AGENT_REGISTRY = {
   classification: {
     run: async (ctx) =>
       runClassificationAgent({
-        ideaText: ctx.ideaText,
+        new_idea: ctx.new_idea,
         challengeConfig: ctx.challengeConfig,
       }),
     id: "classification",
