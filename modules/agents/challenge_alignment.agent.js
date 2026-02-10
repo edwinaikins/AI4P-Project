@@ -4,8 +4,8 @@ export default {
   id: "challenge_alignment",
   outputKey: "challenge_alignment_score",
 
-  async run({ ideaText, challengeContext }) {
-    const prompt = `
+  async run({ new_idea, challengeContext }) {
+    const systemPrompt = `
     You are evaluating an early-stage idea against a specific challenge.
 
     Your task is to assess ALIGNMENT WITH CHALLENGE GOALS.
@@ -35,10 +35,22 @@ export default {
     Challenge context:
     <challenge_description>
     
-    Idea:    
+    Evaluate the following idea:  
     `;
 
-    const response = await callGemini(prompt, ideaText, challengeContext);
+    const userInput = `IDEA:
+    ${ideaText}
+    
+    CHALLENGE DESCRIPTION:
+    ${challengeContext?.description ?? "N/A"}
+    
+    GOALS:
+    ${(challengeContext?.goals || []).join("; ")}
+    
+    EXCLUSIONS:
+    ${(challengeContext?.exclusions || []).join("; ")}`.trim();
+
+    const response = await callGemini(systemPrompt, userInput);
     return response;
   },
 };

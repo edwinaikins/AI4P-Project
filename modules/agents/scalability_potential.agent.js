@@ -4,7 +4,7 @@ export default {
   id: "scalability_potential",
   outputKey: "scalability_potential_score",
 
-  async run({ ideaText }) {
+  async run({ new_idea }) {
     const prompt = `
     You are evaluating an early-stage idea.
 
@@ -35,7 +35,7 @@ export default {
     
 `;
 
-    const response = await callGemini(prompt, ideaText);
+    const response = await callGemini(prompt, new_idea);
     return response;
   },
 };

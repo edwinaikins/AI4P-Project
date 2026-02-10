@@ -4,7 +4,7 @@ export default {
   id: "regulatory_sensitivity",
   outputKey: "regulatory_sensitivity_score",
 
-  async run({ ideaText }) {
+  async run({ new_idea }) {
     const prompt = `
     You are evaluating an early-stage idea.
 
@@ -34,7 +34,7 @@ export default {
     Evaluate the following idea:
     `;
 
-    const response = await callGemini(prompt, ideaText);
+    const response = await callGemini(prompt, new_idea);
     return response;
   },
 };

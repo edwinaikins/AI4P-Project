@@ -4,7 +4,7 @@ export default {
   id: "complexity_awareness",
   outputKey: "complexity_awareness_score",
 
-  async run({ ideaText }) {
+  async run({ new_idea }) {
     const prompt = `
     You are evaluating an early-stage idea.
 
@@ -34,7 +34,7 @@ Return valid JSON only:
 Evaluate the following idea:
 `;
 
-    const response = await callGemini(prompt, ideaText);
+    const response = await callGemini(prompt, new_idea);
     return response;
   },
 };
