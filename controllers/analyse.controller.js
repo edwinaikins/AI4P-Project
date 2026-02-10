@@ -125,7 +125,7 @@ export const agenticIdeaAnalyses = async (req, res) => {
   }
 
   try {
-    const result = await runAgenticEvaluation(new_idea, challengeConfig, author_id, idea_id);
+    const result = await runAgenticEvaluation({new_idea, challengeConfig, author_id, idea_id});
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: 'Server or model error', details: err.message });
