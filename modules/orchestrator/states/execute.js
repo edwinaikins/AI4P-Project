@@ -65,23 +65,6 @@ export default {
       try {
         const result = await agent.run(agentInput);
 
-        // // -------------------------------
-        // // CLASSIFICATION AGENT
-        // // -------------------------------
-        // if (agent.id === "classification") {
-        //   ctx.results.classification = result;
-
-        //   ctx.final.idea_category = result.idea_category ?? null;
-        //   ctx.final.idea_cluster = result.idea_cluster ?? null;
-        // }
-        // // -------------------------------
-        // // SCORING AGENTS ONLY
-        // // -------------------------------
-        // else {
-        //   ctx.final[agent.outputKey] =
-        //     typeof result?.score === "number" ? result.score : null;
-        // }
-
         ctx.final[agent.outputKey] =
           typeof result?.score === "number" ? result.score : null;
 

@@ -26,7 +26,6 @@ import challenge_alignment from "./challenge_alignment.agent.js";
 
 import classification from "./classification.js";
 
-//import classification, { runClassificationAgent } from "./classification.js";
 
 export const AGENT_REGISTRY = {
   conceptual_feasibility,
@@ -56,14 +55,4 @@ export const AGENT_REGISTRY = {
   challenge_alignment,
 
   classification,
-
-  // classification: {
-  //   run: async (ctx) =>
-  //     runClassificationAgent({
-  //       new_idea: ctx.new_idea,
-  //       challengeConfig: ctx.challengeConfig,
-  //     }),
-  //   id: "classification",
-  //   outputKey: "classification",
-  // },
 };
