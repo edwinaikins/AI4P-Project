@@ -1,6 +1,6 @@
 // states/finalize.js
 
-import { pool } from "../../config/db.js";
+import { pool } from "../../../config/db";
 
 /**
  * Persist evaluated idea (insert or update).
