@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { schemas } from "../docs/schema.js";
 
 const options = {
   definition: {
@@ -6,115 +7,56 @@ const options = {
     info: {
       title: "Deep Agentic Idea Evaluation API",
       version: "1.0.0",
-      description:
-        "Agentic multi-agent evaluation engine for idea submissions with similarity detection and classification.",
+      description: `Agentic multi-agent evaluation engine for idea submissions with similarity detection and classification.
+        This API provides:
+• Multi-agent idea evaluation
+• AI-powered classification
+• Embedding + clustering
+• Cross-ecosystem similarity detection
+• Stack ranking within challenges`,
     },
     servers: [
       {
         url: "http://localhost:3000",
+        description: "Local Development",
+      },
+      {
+        url: "https://ai4p-apis-1051174858755.us-central1.run.app",
+        description: "Production",
       },
     ],
+    tags: [
+      {
+        name: "Evaluation",
+        description: "Agentic multi-agent evaluation",
+      },
+      {
+        name: "Similarity",
+        description: "Idea similarity detection services",
+      },
+      {
+        name: "Ranking",
+        description: "Stack ranking and prioritization",
+      },
+    ],
+
     components: {
       schemas: {
-        AgenticEvaluationRequest: {
-          type: "object",
-          required: ["new_idea"],
-          properties: {
-            new_idea: {
-              type: "string",
-              description:
-                "Full idea text (structured JSON string or plain text)",
-            },
-            challengeConfig: {
-              type: "object",
-              properties: {
-                challenge: { type: "string" },
-                description: { type: "string" },
-                goals: {
-                  type: "array",
-                  items: { type: "string" },
-                },
-                exclusions: {
-                  type: "array",
-                  items: { type: "string" },
-                },
-                focus_areas: {
-                  type: "array",
-                  items: {
-                    type: "string",
-                    enum: [
-                      "conceptual_feasibility",
-                      "technical_direction_clarity",
-                      "complexity_awareness",
-                      "scalability_potential",
-                      "originality",
-                      "depth_of_thinking",
-                      "differentiation_logic",
-                      "problem_definition_quality",
-                      "problem_solution_alignment",
-                      "potential_impact_directional",
-                      "beneficiary_awareness",
-                      "ethical_awareness",
-                      "risk_awareness",
-                      "regulatory_sensitivity",
-                      "clarity_of_expression",
-                      "logical_coherence",
-                      "idea_stage_completeness",
-                      "context_awareness",
-                      "adoption_plausibility",
-                      "challenge_alignment",
-                      "classification"
-                    ],
-                  },
-                },
-              },
-            },
-            author_id: {
-              type: "integer",
-            },
-            idea_id: {
-              type: "integer",
-            },
-          },
-        },
+        ...schemas,
+      },
 
-        AgenticEvaluationResponse: {
-          type: "object",
-          properties: {
-            status: { type: "string" },
-            evaluation: {
-              type: "object",
-              properties: {
-                scores: { type: "object" },
-                similarity: {
-                  type: "object",
-                  properties: {
-                    similarity_score: { type: "number", nullable: true },
-                    most_similar_idea: { type: "object", nullable: true },
-                  },
-                },
-                classification: {
-                  type: "object",
-                  properties: {
-                    idea_category: { type: "string", nullable: true },
-                    idea_cluster: { type: "string", nullable: true },
-                    cluster_id: { type: "integer", nullable: true },
-                  },
-                },
-                infrastructure: {
-                  type: "object",
-                  properties: {
-                    embedding: {
-                      type: "array",
-                      items: { type: "number" },
-                    },
-                  },
+      responses: {
+        ServerError: {
+          description: "Internal server error",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: { type: "string" },
+                  details: { type: "string" },
                 },
               },
-            },
-            logs: {
-              type: "array",
-              items: { type: "object" },
             },
           },
         },
