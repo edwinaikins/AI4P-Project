@@ -106,7 +106,7 @@ router.post('/unifiedideachecker', unifiedIdeaChecker);
 
 /**
  * @swagger
- * /api/agentic-evaluate:
+ * /api/submitidea:
  *   post:
  *     summary: Run full agentic evaluation
  *     tags: [Agentic Evaluation]
