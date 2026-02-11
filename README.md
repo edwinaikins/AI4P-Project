@@ -1,355 +1,246 @@
 # 🧠 Agentic Idea Evaluation System
 
-A modular, state-machine-driven AI evaluation engine that:
+A production-grade, modular AI evaluation engine designed to:
 
-* Dynamically evaluates ideas using multiple specialized agents
-* Performs semantic clustering
-* Detects similarity across Deep Funding + SNET repositories
-* Classifies ideas into categories and clusters
-* Never allows one agent failure to break the pipeline
-* Returns structured outputs for frontend persistence
+* Evaluate ideas across configurable focus areas
+* Dynamically adapt to different challenge configurations
+* Classify ideas semantically
+* Detect similarity across Deep Funding + SNET ecosystems
+* Rank ideas fairly within clusters
+* Never allow a single failure to break the pipeline
 
-This system is designed to be:
+This is not just an LLM wrapper.
 
-* Deterministic
-* Extensible
-* Challenge-aware
-* Production-safe
-* Rate-limit resilient
+It is a deterministic orchestration system built around a state machine, agent isolation, clustering, and similarity intelligence.
 
 ---
 
-# 🏗 High-Level Architecture
+# 🎯 What This System Solves
 
-The system is divided into four core layers:
+Traditional AI evaluation systems:
 
-1. **Controller Layer** – API entry
-2. **Orchestrator Layer** – State machine + execution logic
-3. **Agent Layer** – Specialized evaluation agents
-4. **Similarity Engine Layer** – Cross-repository similarity detection
+* Break if one agent fails
+* Hardcode scoring logic
+* Lack semantic clustering
+* Produce unstable classifications
+* Cannot detect duplicate ideas reliably
+* Cannot adapt to different challenges dynamically
 
----
-
-# 📂 Core Structure
-
-```
-/modules
-  /orchestrator
-    runAgenticEvaluation.js
-    stateMachine.js
-    /states
-      init.js
-      plan.js
-      execute.js
-      aggregate.js
-      ideaCheck.js
-      finalize.js
-
-  /agents
-    registry.js
-    loader.js
-    classification.js
-    conceptual_feasibility.js
-    technical_direction_clarity.js
-    complexity_awareness.js
-    scalability_potential.js
-    context_awareness.js
-    adoption_plausibility.js
-    challenge_alignment.js
-    ... (other focus agents)
-
-  /creativity
-    idea-checker.js
-    idea-checker-adapter.js
-
-/services
-  genai.service.js
-
-/utils
-  index.js
-```
+This system fixes all of that.
 
 ---
 
-# 🔁 Full Execution Flow
+# 🏗 System Architecture
 
-## Step 1 – API Call
+The system is divided into four layers:
 
-Controller receives:
-
-```json
-{
-  "new_idea": "<string>",
-  "challengeConfig": { ... }
-}
+```
+Controller Layer
+    ↓
+Orchestrator (State Machine)
+    ↓
+Agent Layer (Scoring + Classification)
+    ↓
+Similarity & Corpus Engine
 ```
 
-Controller calls:
-
-```js
-runAgenticEvaluation({
-  new_idea,
-  challengeConfig
-})
-```
+Each layer is fully isolated.
 
 ---
 
-## Step 2 – State Machine Initialization
-
-`runAgenticEvaluation()` creates shared execution context:
-
-```js
-{
-  new_idea,
-  challengeConfig,
-  plan: [],
-  results: {},
-  final: {},
-  logs: []
-}
-```
-
-Then initializes:
-
-```js
-new StateMachine(InitState, context)
-```
-
----
-
-# 🧭 State Machine
-
-The evaluation follows this exact order:
+# 🔁 Execution Flow (Agentic Evaluation)
 
 ```
 INIT → PLAN → EXECUTE → AGGREGATE → IDEA_CHECKER → FINALIZE
 ```
 
-Each state is isolated and transition-based.
+---
+
+## 1️⃣ INIT
+
+* Creates a clean execution context
+* Ensures isolation between runs
+* Initializes logs, results, and final containers
+
+No heavy logic here.
 
 ---
 
-# 🟢 INIT State
+## 2️⃣ PLAN
 
-Purpose:
+Dynamic agent selection happens here.
 
-* Initialize clean evaluation context
-* Log state entry
+Agents are chosen based on:
 
-No heavy logic.
+```js
+challengeConfig.focus_areas
+```
+
+This allows:
+
+* Agriculture challenge → agriculture-relevant agents
+* Health challenge → health-relevant agents
+* Custom challenge → custom evaluation stack
+
+Classification is appended automatically unless disabled.
+
+This makes the system:
+
+* Configurable
+* Challenge-aware
+* Reusable across domains
 
 ---
 
-# 🟡 PLAN State
+## 3️⃣ EXECUTE
 
-Purpose:
+This is the intelligence core.
 
-* Dynamically determine which agents to run.
+### Shared Infrastructure (Runs Once)
 
-Uses:
+* Embedding generation
+* Clustering
 
-```js
-ctx.challengeConfig.focus_areas
-```
-
-Agents are loaded dynamically:
-
-```js
-loadAgents(focusAreas)
-```
-
-Classification is always appended unless explicitly disabled.
-
-Result:
-
-```js
-ctx.plan = [
-  { agentId: "conceptual_feasibility", outputKey: "conceptual_feasibility_score" },
-  ...
-]
-```
-
----
-
-# 🔵 EXECUTE State
-
-This is the most important state.
-
-It performs two categories of operations:
-
----
-
-## 1️⃣ Shared Infrastructure (Runs Once)
-
-```js
-embedIdea(new_idea)
-runClustering(embedding)
-```
-
-Results stored in:
-
-```js
-ctx.results.embedding
-ctx.results.cluster
-```
-
-These are reused later by:
+These outputs are reused by:
 
 * Similarity engine
-* Classification output
-* Final response
+* Classification
+* Ranking systems
+
+This avoids repeated compute and improves cost control.
 
 ---
 
-## 2️⃣ Agent Execution Loop
-
-For each planned agent:
-
-```js
-for (const step of ctx.plan)
-```
+### Agent Execution Loop
 
 Each agent:
 
 * Receives structured input
 * Runs independently
-* Returns structured result
-* Cannot crash the evaluation
-* Logs success or failure
+* Returns structured output
+* Cannot crash the system
 
-Failure results in:
+If an agent fails:
 
 ```js
-ctx.final[outputKey] = null
+score = null
 ```
+
+Evaluation continues.
+
+This is deliberate design.
 
 ---
 
-## Special Handling – Classification Agent
+### Classification Agent
 
-Classification returns:
+Unlike scoring agents, classification:
 
-```js
-{
-  idea_category: string,
-  idea_cluster: string
-}
+* Does NOT return a score
+* Returns semantic metadata
+* Is stable (low temperature)
+
+Outputs:
+
+```
+idea_category
+idea_cluster
 ```
 
-It does NOT return score.
+This allows:
 
-Execute state attaches:
-
-```js
-ctx.final.idea_category
-ctx.final.idea_cluster
-```
+* UI grouping
+* Portfolio segmentation
+* Ranking normalization
+* Trend analysis
 
 ---
 
-# 🟣 AGGREGATE State
+## 4️⃣ AGGREGATE
 
-Purpose:
+This state:
 
-* Normalize outputs
-* Ensure required infra fields exist
-* Prepare for similarity check
+* Normalizes outputs
+* Ensures embedding + cluster_id are attached
+* Prepares data for similarity detection
 
-Adds:
-
-```js
-ctx.final.embedding
-ctx.final.cluster_id
-ctx.final.idea_cluster (from clustering if available)
-```
-
-Logs collected `_score` fields.
+No intelligence is added here.
+Only structured consolidation.
 
 ---
 
-# 🔴 IDEA_CHECKER State
+## 5️⃣ IDEA_CHECKER
 
-Uses:
+This is the cross-ecosystem similarity engine.
 
-```
-/creativity/idea-checker-adapter.js
-```
+It searches across:
 
-This is a lightweight adapter version of the standalone idea checker.
+* Deep Funding repository
+* SNET GitHub repositories
+* SNET Marketplace systems
 
-It:
+Process:
 
-1. Fetches Deep + SNET idea corpus
-2. Restricts to same cluster
-3. Removes near-duplicate text
-4. Computes cosine similarity
-5. Converts to score
-6. Applies threshold (<20 → null)
-7. Optionally generates explanation
+1. Restrict to same cluster
+2. Remove near-text duplicates
+3. Compute cosine similarity
+4. Convert similarity to score
+5. Apply threshold (<20 → null)
+6. Optionally generate explanation
 
-Returns:
-
-```js
-{
-  similarity_score,
-  most_similar_idea: {
-    idea_id,
-    similarity_score,
-    explanation
-  }
-}
-```
-
-This state NEVER blocks evaluation.
+Similarity failure never blocks evaluation.
 
 ---
 
-# 🟤 FINALIZE State
+## 6️⃣ FINALIZE
 
-Formats structured output:
+Formats structured output into:
 
-```json
-{
-  "scores": { ... },
-  "similarity": { ... },
-  "classification": { ... },
-  "infrastructure": { ... }
-}
-```
+* Scores
+* Similarity
+* Classification
+* Infrastructure metadata
+* Logs
 
 No database writes occur here.
 
-Frontend persists.
+Frontend owns persistence.
 
 ---
 
-# 🧠 Agents
+# 🧠 Agent Model
 
-All agents follow one of two contracts:
+There are two types of agents.
 
 ---
 
-## 1️⃣ Scoring Agent Contract
+## Scoring Agents
 
-Returns:
+Return:
 
-```js
+```
 {
   score: number,
   confidence: number
 }
 ```
 
-Score is normalized 0–100.
+Score range: 0–100
+
+Examples:
+
+* conceptual_feasibility
+* scalability_potential
+* challenge_alignment
+* adoption_plausibility
 
 ---
 
-## 2️⃣ Classification Agent Contract
+## Classification Agent
 
 Returns:
 
-```js
+```
 {
   idea_category: string,
   idea_cluster: string
@@ -362,114 +253,131 @@ Strict JSON.
 
 ---
 
-# 📊 Supported Focus Areas
+# 🔍 Standalone Idea Checkers
 
-These must match exactly in `challengeConfig.focus_areas`:
-
-```
-conceptual_feasibility
-technical_direction_clarity
-complexity_awareness
-scalability_potential
-originality
-depth_of_thinking
-differentiation_logic
-problem_definition_quality
-problem_solution_alignment
-potential_impact_directional
-beneficiary_awareness
-ethical_awareness
-risk_awareness
-regulatory_sensitivity
-clarity_of_expression
-logical_coherence
-idea_stage_completeness
-context_awareness
-adoption_plausibility
-challenge_alignment
-classification
-```
+The system includes three similarity modes:
 
 ---
 
-# 🔍 Standalone Idea Checker (Important)
+### 1️⃣ Agentic Evaluation Similarity
 
-Located in:
+Used inside `/submitidea`.
 
-```
-/creativity/idea-checker.js
-```
-
-This version:
-
-* Builds unified corpus
-* Ensures clustering exists
-* Searches Deep Funding repository
-* Searches SNET GitHub repositories
-* Searches SNET Marketplace systems
-* Generates explanations for similarity
-
-The agentic flow reuses this logic via an adapter to prevent duplication.
+Cluster-restricted.
+Fast.
+Context-aware.
 
 ---
 
-# 🔁 Sequence Diagram – Full Evaluation
+### 2️⃣ SNET Idea Checker
 
-```mermaid
-sequenceDiagram
-    participant API
-    participant Orchestrator
-    participant StateMachine
-    participant Agents
-    participant Embedding
-    participant Clustering
-    participant Similarity
+Searches only SNET ecosystem.
 
-    API->>Orchestrator: runAgenticEvaluation()
-    Orchestrator->>StateMachine: initialize context
+Returns:
 
-    StateMachine->>StateMachine: INIT
-    StateMachine->>StateMachine: PLAN
-
-    StateMachine->>Embedding: embedIdea()
-    Embedding-->>StateMachine: embedding
-
-    StateMachine->>Clustering: runClustering()
-    Clustering-->>StateMachine: cluster_id
-
-    loop For each agent
-        StateMachine->>Agents: agent.run()
-        Agents-->>StateMachine: result
-    end
-
-    StateMachine->>Similarity: runIdeaCheckerWithContext()
-    Similarity-->>StateMachine: similarity result
-
-    StateMachine-->>API: structured evaluation
-```
+* feasibility_score
+* idea_cluster
+* cluster_id
+* most_similar_idea
 
 ---
 
-# 🛡 Design Guarantees
+### 3️⃣ Unified Idea Checker
+
+Searches:
+
+* Deep Funding
+* SNET GitHub
+* SNET Marketplace
+
+Includes explanation generation.
+
+Used when cross-platform duplication risk must be evaluated.
+
+---
+
+# 📊 Stack Ranking Engine
+
+Stack ranking is cluster-aware.
+
+Why this matters:
+
+Comparing a “Legal AI” idea to a “Farmer AI” idea directly is unfair.
+
+So the system:
+
+1. Groups by cluster_id
+2. Normalizes scores within cluster
+3. Applies weighted composite formula
+4. Sorts descending
+
+This ensures:
+
+* Domain fairness
+* Cluster equity
+* Explainable ranking
+
+---
+
+# 🛡 Reliability Guarantees
 
 * Agent failure isolation
 * Similarity failure isolation
-* Cluster-restricted similarity
-* Dynamic challenge-driven execution
+* Cluster-restricted search
 * Deterministic classification
-* No DB side-effects
-* Full execution logs
-* Frontend-controlled persistence
+* Configurable focus areas
+* No implicit side effects
+* Structured logs for debugging
+* Swagger-driven contract enforcement
 
 ---
 
-If you want next level:
+# 🔧 Extending the System
 
-* Internal architecture diagram
-* Error-handling strategy documentation
-* Rate-limit mitigation architecture
-* Caching layer plan
-* Observability strategy
-* Production scaling blueprint
+To add a new scoring agent:
 
-Tell me which direction.
+1. Create agent file
+2. Add to registry
+3. Add to focus_areas list
+4. Ensure outputKey matches schema
+
+No changes required in state machine.
+
+To add a new evaluation dimension:
+
+* Define agent
+* Add to challenge focus_areas
+* System automatically plans it
+
+---
+
+# 🔐 Design Philosophy
+
+This system is built around five principles:
+
+### 1️⃣ Determinism
+
+Low temperature where classification stability is required.
+
+### 2️⃣ Isolation
+
+No agent can crash the pipeline.
+
+### 3️⃣ Reusability
+
+Challenge config drives behavior.
+
+### 4️⃣ Semantic Awareness
+
+Clustering + embeddings power everything.
+
+
+# 🚀 Integration Guidance
+
+When integrating:
+
+* Always persist evaluation output externally
+* Do not mutate evaluation results post-generation
+* Treat similarity score as advisory, not deterministic rejection
+* Use classification for UI grouping
+* Use ranking only within cluster context
