@@ -1358,88 +1358,88 @@ FINAL OUTPUT (JSON ONLY)
 }
 
 // // script to update ideas
-export async function runProcessIdeas() {
-  try {
-    console.log("Starting --->");
+// export async function runProcessIdeas() {
+//   try {
+//     console.log("Starting --->");
 
-    const { rows } = await pool.query(`
-      SELECT id, title, content, challenge_name, goal_alignment, 
-             problem_description, proposed_solution, industries, technologies
-      FROM deep_ideation.ideas
-      WHERE feasibility_score IS NULL OR clarity_score IS NULL OR impact_score IS NULL OR ethical_score IS NULL OR embedding IS NULL OR cluster_id IS NULL
-    `);
+//     const { rows } = await pool.query(`
+//       SELECT id, title, content, challenge_name, goal_alignment, 
+//              problem_description, proposed_solution, industries, technologies
+//       FROM deep_ideation.ideas
+//       WHERE feasibility_score IS NULL OR clarity_score IS NULL OR impact_score IS NULL OR ethical_score IS NULL OR embedding IS NULL OR cluster_id IS NULL
+//     `);
 
-    console.log("Fetched ideas:", rows.length);
+//     console.log("Fetched ideas:", rows.length);
 
-    const formattedIdeas = rows.map(formatIdeaAsObject);
+//     const formattedIdeas = rows.map(formatIdeaAsObject);
 
-    const results = [];
+//     const results = [];
 
-    for (const idea of formattedIdeas) {
-      console.log("Processing idea:", idea.id);
-      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      const feasibility = await runFeasibilityAnalysis(idea.idea_text);
-      await delay(200); // 500ms delay
-      const embedding = await embedIdea(idea.idea_text);
-      await delay(200); // 500ms delay
-      let cluster = await runClustering(embedding);
-      await delay(200); // 500ms delay
-      const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
-      await delay(200); // 500ms delay
-      const impact = await runImpactAssessmentAnalysis(idea.idea_text);
-      await delay(200);
-      const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
-      await delay(200);
-      const feasibility_score = feasibility.feasibility_score;
-      const idea_category = feasibility.idea_category;
-      const idea_cluster = feasibility.idea_cluster;
-      const cluster_id = cluster.cluster_id;
-      const clarity_score = clarity.clarity_score;
-      const impact_score = impact.impact_score;
-      const ethical_score = ethical.ethical_score;
+//     for (const idea of formattedIdeas) {
+//       console.log("Processing idea:", idea.id);
+//       const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+//       const feasibility = await runFeasibilityAnalysis(idea.idea_text);
+//       await delay(200); // 500ms delay
+//       const embedding = await embedIdea(idea.idea_text);
+//       await delay(200); // 500ms delay
+//       let cluster = await runClustering(embedding);
+//       await delay(200); // 500ms delay
+//       const clarity = await runClarityandCoherenceAnalysis(idea.idea_text);
+//       await delay(200); // 500ms delay
+//       const impact = await runImpactAssessmentAnalysis(idea.idea_text);
+//       await delay(200);
+//       const ethical = await runEthicalEvaluationAnalysis(idea.idea_text);
+//       await delay(200);
+//       const feasibility_score = feasibility.feasibility_score;
+//       const idea_category = feasibility.idea_category;
+//       const idea_cluster = feasibility.idea_cluster;
+//       const cluster_id = cluster.cluster_id;
+//       const clarity_score = clarity.clarity_score;
+//       const impact_score = impact.impact_score;
+//       const ethical_score = ethical.ethical_score;
 
-      console.log({
-        id: idea.id,
-        feasibility_score,
-        cluster_id,
-        clarity_score,
-        impact_score,
-        ethical_score,
-        idea_category,
-        idea_cluster,
-      });
+//       console.log({
+//         id: idea.id,
+//         feasibility_score,
+//         cluster_id,
+//         clarity_score,
+//         impact_score,
+//         ethical_score,
+//         idea_category,
+//         idea_cluster,
+//       });
 
-      // SAVE INTO DATABASE
-      await updateIdeaScores(idea.id, {
-        feasibility_score,
-        cluster_id,
-        clarity_score,
-        impact_score,
-        ethical_score,
-        embedding,
-        idea_category,
-        idea_cluster,
-      });
+//       // SAVE INTO DATABASE
+//       await updateIdeaScores(idea.id, {
+//         feasibility_score,
+//         cluster_id,
+//         clarity_score,
+//         impact_score,
+//         ethical_score,
+//         embedding,
+//         idea_category,
+//         idea_cluster,
+//       });
 
-      // Push results to return at the end
-      results.push({
-        id: idea.id,
-        feasibility,
-        cluster_id,
-        clarity_score,
-        impact_score,
-        ethical_score,
-      });
+//       // Push results to return at the end
+//       results.push({
+//         id: idea.id,
+//         feasibility,
+//         cluster_id,
+//         clarity_score,
+//         impact_score,
+//         ethical_score,
+//       });
 
-      console.log(results[results.length - 1]);
-    }
+//       console.log(results[results.length - 1]);
+//     }
 
-    return results;
-  } catch (err) {
-    console.error("Fatal Error:", err);
-    throw err;
-  }
-}
+//     return results;
+//   } catch (err) {
+//     console.error("Fatal Error:", err);
+//     throw err;
+//   }
+// }
 
 async function updateIdeaScores(
   id,
