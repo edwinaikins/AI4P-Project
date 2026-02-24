@@ -19,6 +19,7 @@
     "google-auth-library": "^10.5.0",
     "ml-kmeans": "^7.0.0",
     "multer": "^2.0.1",
+    "openai": "^6.24.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.16.0",
     "string-similarity": "^4.0.4",
