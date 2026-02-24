@@ -83,7 +83,25 @@ export const schemas = {
       evaluation: {
         type: "object",
         properties: {
-          scores: { type: "object" },
+          //scores: { type: "object" },
+          // ----------------------------------
+          // Multi-LLM Scores (Dynamic Keys)
+          // ----------------------------------
+          scores: {
+            type: "object",
+            additionalProperties: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  model: { type: "string" },
+                  score: { type: "number", nullable: true },
+                  confidence: { type: "number", nullable: true },
+                  reasoning: { type: "string", nullable: true },
+                },
+              },
+            },
+          },
           similarity: {
             type: "object",
             properties: {
@@ -117,18 +135,18 @@ export const schemas = {
     },
   },
 
-
   StackRankRequest: {
     type: "object",
     required: ["challenge_id"],
     properties: {
       challenge_id: {
         type: "string",
-        description: "Challenge identifier used to fetch and rank evaluated ideas"
-      }
-    }
+        description:
+          "Challenge identifier used to fetch and rank evaluated ideas",
+      },
+    },
   },
-  
+
   StackRankResponse: {
     type: "array",
     items: {
@@ -136,16 +154,15 @@ export const schemas = {
       properties: {
         id: {
           type: "string",
-          description: "Idea ID"
+          description: "Idea ID",
         },
         rank: {
           type: "integer",
-          description: "1 = highest ranked idea"
-        }
-      }
-    }
+          description: "1 = highest ranked idea",
+        },
+      },
+    },
   },
-  
 
   SnetIdeaCheckerRequest: {
     type: "object",
@@ -153,33 +170,32 @@ export const schemas = {
     properties: {
       newIdeaText: {
         type: "string",
-        description: "Full idea text"
-      }
-    }
+        description: "Full idea text",
+      },
+    },
   },
-  
+
   SnetIdeaCheckerResponse: {
     type: "object",
     properties: {
       feasibility_score: {
-        type: "number"
+        type: "number",
       },
       idea_cluster: {
-        type: "string"
+        type: "string",
       },
       cluster_id: {
-        type: "integer"
+        type: "integer",
       },
       most_similar_idea: {
         type: "object",
         properties: {
           idea_id: { type: "string" },
-          similarity_score: { type: "number" }
-        }
-      }
-    }
+          similarity_score: { type: "number" },
+        },
+      },
+    },
   },
-
 
   UnifiedIdeaCheckerRequest: {
     type: "object",
@@ -187,22 +203,22 @@ export const schemas = {
     properties: {
       newIdeaText: {
         type: "string",
-        description: "Full idea text"
-      }
-    }
+        description: "Full idea text",
+      },
+    },
   },
-  
+
   UnifiedIdeaCheckerResponse: {
     type: "object",
     properties: {
       feasibility_score: {
-        type: "number"
+        type: "number",
       },
       idea_cluster: {
-        type: "string"
+        type: "string",
       },
       cluster_id: {
-        type: "integer"
+        type: "integer",
       },
       most_similar_idea: {
         oneOf: [
@@ -211,20 +227,19 @@ export const schemas = {
             properties: {
               idea_id: { type: "string" },
               similarity_score: { type: "number" },
-              explanation: {}
-            }
+              explanation: {},
+            },
           },
           {
             type: "object",
             properties: {
               idea_id: { type: "null" },
               similarity_score: { type: "null" },
-              explanation: { type: "null" }
-            }
-          }
-        ]
-      }
-    }
-  }  
-  
+              explanation: { type: "null" },
+            },
+          },
+        ],
+      },
+    },
+  },
 };
