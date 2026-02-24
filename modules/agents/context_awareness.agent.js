@@ -53,7 +53,7 @@ export default {
     ${(challengeContext?.exclusions || []).join("; ")}`.trim();
 
     try {
-      const results = await scoreWithAllModels(prompt, new_idea);
+      const results = await scoreWithAllModels(systemPrompt, userInput);
       return {
         [this.outputKey]: results,
       };
