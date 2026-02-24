@@ -78,7 +78,7 @@ export default {
         }
         // Otherwise null
         else {
-          ctx.final[agent.outputKey] = null;
+          ctx.final[agent.outputKey] = result ?? null;
         }
 
         // Keep full agent output for audits / debugging

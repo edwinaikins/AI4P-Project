@@ -1,4 +1,4 @@
-import { callGemini } from "../../services/genai.service.js";
+import { scoreWithAllModels } from "../../services/multiModel.service.js";
 
 export default {
   id: "context_awareness",
@@ -53,7 +53,10 @@ export default {
     ${(challengeContext?.exclusions || []).join("; ")}`.trim();
 
     try {
-      return await callGemini(systemPrompt, userInput);
+      const results = await scoreWithAllModels(prompt, new_idea);
+      return {
+        [this.outputKey]: results,
+      };
     } catch (error) {
       if (String(error.message).includes("429")) {
         await sleep(1000);

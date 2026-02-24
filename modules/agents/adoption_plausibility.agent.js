@@ -1,4 +1,3 @@
-import { callGemini } from "../../services/genai.service.js";
 import { scoreWithAllModels } from "../../services/multiModel.service.js";
 
 export default {
@@ -36,7 +35,6 @@ export default {
     `;
 
     try {
-      //return await callGemini(prompt, new_idea);
       const results = await scoreWithAllModels(prompt, new_idea);
       return {
         [this.outputKey]: results,

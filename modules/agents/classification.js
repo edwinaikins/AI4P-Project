@@ -1,6 +1,5 @@
 // agents/classification.js
-
-import { callGemini } from "../../services/genai.service.js";
+import { scoreWithAllModels } from "../../services/multiModel.service.js";
 
 
 export default {
@@ -86,7 +85,10 @@ Return ONLY JSON. No markdown. No commentary.
     ${(challengeContext?.goals || []).join("; ")}`.trim();
 
     try {
-      return await callGemini(systemPrompt, userInput);
+      const results = await scoreWithAllModels(prompt, new_idea);
+      return {
+        [this.outputKey]: results,
+      };
     } catch (error) {
       if (String(error.message).includes("429")) {
         await sleep(1000);
