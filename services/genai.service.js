@@ -27,7 +27,7 @@ export async function callGemini(systemPrompt, userInput) {
   }
 
   const chat = ai.chats.create({
-    model: config.MODEL,
+    model: config.GEMINI_MODEL,
     config: generationConfig,
   });
 
