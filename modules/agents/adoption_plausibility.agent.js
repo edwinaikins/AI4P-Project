@@ -1,4 +1,5 @@
 import { callGemini } from "../../services/genai.service.js";
+import { scoreWithAllModels } from "../../services/multiModel.service.js";
 
 export default {
   id: "adoption_plausibility",
@@ -35,7 +36,12 @@ export default {
     `;
 
     try {
-      return await callGemini(prompt, new_idea);
+      //return await callGemini(prompt, new_idea);
+      const results = await scoreWithAllModels(prompt, new_idea);
+      return {
+        [this.outputKey]: results,
+      }
+
     } catch (error) {
       if (String(error.message).includes("429")) {
         await sleep(1000);
