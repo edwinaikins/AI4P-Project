@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runstackranking, runSingularityNetIdeaCheckermm, runImpactAssessmentAnalysis } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runstackranking, runSingularityNetIdeaChecker, runImpactAssessmentAnalysis } from '../modules/creativity/analyse.js';
 import { runUnifiedIdeaChecker } from '../modules/creativity/idea-checker.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
