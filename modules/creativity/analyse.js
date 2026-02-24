@@ -1,5 +1,4 @@
 import { callGemini } from "../../services/genai.service.js";
-import { scoreWithAllModels } from "../../services/multiModel.service.js";
 import { pool } from "../../config/db.js";
 import { GoogleAuth } from "google-auth-library";
 
@@ -812,7 +811,7 @@ export async function runImpactAssessmentAnalysis(new_idea) {
   `;
   const userInput = JSON.stringify({ new_idea });
 
-  return scoreWithAllModels(systemPrompt, userInput);
+  return callGemini(systemPrompt, userInput);
 }
 
 export async function runEthicalEvaluationAnalysis(new_idea) {

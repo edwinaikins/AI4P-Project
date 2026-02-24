@@ -1,4 +1,4 @@
-import { runCreativityAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runstackranking, runSingularityNetIdeaChecker, runImpactAssessmentAnalysis } from '../modules/creativity/analyse.js';
+import { runCreativityAnalysis, runExtractIdeaAnalysis, runFullAIdeaEvaluation, runCreativityAnalysisandInsertIdea, runStackRanking, runideaEvaluation, runIdeaChecker, runstackranking, runSingularityNetIdeaChecker } from '../modules/creativity/analyse.js';
 import { runUnifiedIdeaChecker } from '../modules/creativity/idea-checker.js';
 import fs from 'fs/promises';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
@@ -205,20 +205,6 @@ export const unifiedIdeaChecker = async (req, res) => {
 }
 
 
-export const impactAssessmentAnalysis = async (req, res) => {
-  const { new_idea } = req.body;
-
-  if (typeof new_idea !== 'string' || new_idea.trim() === '') {
-    return res.status(400).json({ error: 'Invalid or empty idea provided.' });
-  }
-
-  try {
-    const result = await runImpactAssessmentAnalysis(new_idea);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Server or model error', details: err.message });
-  }
-}
 // // script
 // export const processIdeas = async (req, res) => {
 //   try {
