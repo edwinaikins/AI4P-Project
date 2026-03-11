@@ -52,7 +52,7 @@ export default {
     for (const area of focusAreas) {
       const key = `${area.id}_score`;
 
-      const modelScores = ctx.final[key];
+      const modelScores = ctx.results?.[key];
 
       if (!Array.isArray(modelScores) || modelScores.length === 0) continue;
 
