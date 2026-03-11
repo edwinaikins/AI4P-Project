@@ -119,6 +119,24 @@ export const schemas = {
               },
             },
           },
+          rating_summary: {
+            type: "object",
+            properties: {
+              focus_area_breakdown: {
+                type: "object",
+                additionalProperties: {
+                  type: "object",
+                  properties: {
+                    average_score: { type: "number" },
+                    weight: { type: "number" },
+                    contribution: { type: "number" },
+                  },
+                },
+              },
+              final_score: { type: "number" },
+              rating: { type: "string" },
+            }
+          },
           similarity: {
             type: "object",
             properties: {
