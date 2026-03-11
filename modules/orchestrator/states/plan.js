@@ -4,9 +4,17 @@ import { loadAgents } from "../../agents/loader.js";
 export default {
   async run(ctx, machine) {
     // Challenge decides which agents to run
-    const focusAreas =
+    // const focusAreas =
+    //   ctx.challengeConfig?.focus_areas ||
+    //   Object.keys(ctx.challengeConfig?.default_agents || {});
+    const rawFocusAreas =
       ctx.challengeConfig?.focus_areas ||
       Object.keys(ctx.challengeConfig?.default_agents || {});
+
+    // Normalize focus areas to support both old and new formats
+    const focusAreas = rawFocusAreas.map((fa) =>
+      typeof fa === "string" ? fa : fa.id
+    );
 
     // Load agent definitions dynamically
     ctx.plan = loadAgents(focusAreas).map((agent, idx) => ({
