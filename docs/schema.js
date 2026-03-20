@@ -277,4 +277,75 @@ export const schemas = {
       },
     },
   },
+
+  RFPEvaluationRequest: {
+    type: "object",
+    required: ["rfp", "proposal", "criteria"],
+    properties: {
+      rfp: {
+        type: "object",
+        description: "RFP details and requirements",
+      },
+      proposal: {
+        type: "object",
+        description: "Proposal details and claims",
+      },
+      criteria: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            description: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+
+  RFPEvaluationResponse: {
+    type: "object",
+    properties: {
+      status: { type: "string" },
+      evaluation: {
+        type: "object",
+        properties: {
+          scores: {
+            type: "object",
+            additionalProperties: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                confidence: { type: "number" },
+                reasoning: { type: "string" },
+                strengths: {
+                  type: "array",
+                  items: { type: "string" },
+                },
+                weaknesses: {
+                  type: "array",
+                  items: { type: "string" },
+                },
+              },
+            },
+          },
+          weights: {
+            type: "object",
+            additionalProperties: { type: "number" },
+          },
+          final_score: { type: "number" },
+          decision: { type: "string" },
+          summary: { type: "string" },
+          key_strengths: {
+            type: "array",
+            items: { type: "string" },
+          },
+          key_risks: {
+            type: "array",
+            items: { type: "string" },
+          },
+        },
+      },
+    },
+  }
 };

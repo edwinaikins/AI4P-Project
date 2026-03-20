@@ -2,6 +2,7 @@ import { callGemini } from "../../services/genai.service.js";
 import { kmeans } from "ml-kmeans";
 import { GoogleAuth } from "google-auth-library";
 import { pool } from "../../config/db.js";
+import { synthesizeReasoning } from "./synthesizeReasoning.js";
 
 const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
@@ -388,4 +389,75 @@ export async function fetchDeepIdeas() {
     console.error("Error fetching existing ideas:", error);
     throw error;
   }
+}
+
+// RFP
+
+export function aggregateModelResponses(responses) {
+  const valid = responses.filter(
+    (r) => !r.error && typeof r.score === "number"
+  );
+
+  if (!valid.length) {
+    return {
+      score: 0,
+      reasoning: "All models failed",
+      strengths: [],
+      weaknesses: [],
+    };
+  }
+
+  // 🔥 Confidence-weighted scoring
+  let totalScore = 0;
+  let totalWeight = 0;
+
+  valid.forEach((r) => {
+    const weight = r.confidence ?? 1;
+    totalScore += r.score * weight;
+    totalWeight += weight;
+  });
+
+  const finalScore = totalScore / totalWeight;
+
+  const strengths = [];
+  const weaknesses = [];
+
+  valid.forEach((r) => {
+    if (Array.isArray(r.strengths)) strengths.push(...r.strengths);
+    if (Array.isArray(r.weaknesses)) weaknesses.push(...r.weaknesses);
+  });
+
+  const unique = (arr) => [...new Set(arr)];
+
+  return {
+    score: Number(finalScore.toFixed(2)),
+    reasoning: synthesizeReasoning(valid),
+    strengths: unique(strengths).slice(0, 5),
+    weaknesses: unique(weaknesses).slice(0, 5),
+  };
+}
+
+export function synthesizeReasoning(responses) {
+  return responses.map((r) => `[${r.model}] ${r.reasoning}`).join("\n");
+}
+
+export function normalizeWeights(criteria) {
+  const total = criteria.reduce((sum, c) => sum + c.weight, 0);
+
+  const weights = {};
+  criteria.forEach((c) => {
+    weights[c.name] = c.weight / total;
+  });
+
+  return weights;
+}
+
+export function computeWeightedScore(results, weights) {
+  let total = 0;
+
+  for (const key in results) {
+    total += (results[key].score || 0) * (weights[key] || 0);
+  }
+
+  return Number(total.toFixed(2));
 }
