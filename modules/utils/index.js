@@ -392,47 +392,81 @@ export async function fetchDeepIdeas() {
 
 // RFP
 
+// export function aggregateModelResponses(responses) {
+//   const valid = responses.filter(
+//     (r) => !r.error && typeof r.score === "number"
+//   );
+
+//   if (!valid.length) {
+//     return {
+//       score: 0,
+//       confidence: 0,
+//       reasoning: "All models failed",
+//       strengths: [],
+//       weaknesses: [],
+//     };
+//   }
+
+//   // 🔥 Confidence-weighted scoring
+//   let totalScore = 0;
+//   let totalWeight = 0;
+
+//   valid.forEach((r) => {
+//     const weight = r.confidence ?? 1;
+//     totalScore += r.score * weight;
+//     totalWeight += weight;
+//   });
+
+//   const finalScore = totalScore / totalWeight;
+
+//   const strengths = [];
+//   const weaknesses = [];
+
+//   valid.forEach((r) => {
+//     if (Array.isArray(r.strengths)) strengths.push(...r.strengths);
+//     if (Array.isArray(r.weaknesses)) weaknesses.push(...r.weaknesses);
+//   });
+
+//   const unique = (arr) => [...new Set(arr)];
+
+//   return {
+//     score: Number(finalScore.toFixed(2)),
+//     reasoning: synthesizeReasoning(valid),
+//     strengths: unique(strengths).slice(0, 5),
+//     weaknesses: unique(weaknesses).slice(0, 5),
+//   };
+// }
+
 export function aggregateModelResponses(responses) {
   const valid = responses.filter(
-    (r) => !r.error && typeof r.score === "number"
+    (r) =>
+      !r.error &&
+      typeof r.score === "number"
   );
 
   if (!valid.length) {
     return {
       score: 0,
+      confidence: 0,
       reasoning: "All models failed",
       strengths: [],
-      weaknesses: [],
+      weaknesses: []
     };
   }
 
-  // 🔥 Confidence-weighted scoring
-  let totalScore = 0;
-  let totalWeight = 0;
+  const avgScore =
+    valid.reduce((sum, r) => sum + r.score, 0) / valid.length;
 
-  valid.forEach((r) => {
-    const weight = r.confidence ?? 1;
-    totalScore += r.score * weight;
-    totalWeight += weight;
-  });
-
-  const finalScore = totalScore / totalWeight;
-
-  const strengths = [];
-  const weaknesses = [];
-
-  valid.forEach((r) => {
-    if (Array.isArray(r.strengths)) strengths.push(...r.strengths);
-    if (Array.isArray(r.weaknesses)) weaknesses.push(...r.weaknesses);
-  });
-
-  const unique = (arr) => [...new Set(arr)];
+  const avgConfidence =
+    valid.reduce((sum, r) => sum + (r.confidence || 0.5), 0) /
+    valid.length;
 
   return {
-    score: Number(finalScore.toFixed(2)),
-    reasoning: synthesizeReasoning(valid),
-    strengths: unique(strengths).slice(0, 5),
-    weaknesses: unique(weaknesses).slice(0, 5),
+    score: Number(avgScore.toFixed(2)),
+    confidence: Number(avgConfidence.toFixed(2)),
+    reasoning: valid[0].reasoning,
+    strengths: valid.flatMap((v) => v.strengths || []).slice(0, 5),
+    weaknesses: valid.flatMap((v) => v.weaknesses || []).slice(0, 5)
   };
 }
 
@@ -459,4 +493,25 @@ export function computeWeightedScore(results, weights) {
   }
 
   return Number(total.toFixed(2));
+}
+
+export function extractJSON(text) {
+  if (!text) return null;
+
+  try {
+    // Remove markdown ```json ```
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // Extract first JSON object
+    const match = cleaned.match(/\{[\s\S]*\}/);
+
+    if (!match) return null;
+
+    return JSON.parse(match[0]);
+  } catch (err) {
+    return null;
+  }
 }

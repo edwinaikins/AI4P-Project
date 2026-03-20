@@ -34,10 +34,31 @@ Return:
 
   const responses = await scoreWithAllModels(prompt, userInput);
 
-  const aggregated = aggregateModelResponses(responses);
+  // NEW: Parse each model safely
+  const parsedResponses = responses.map((res) => {
+    if (res.error) return res;
+
+    const rawText = res.text || res.response || res.output || "";
+
+    const parsed = extractJSON(rawText);
+
+    if (!parsed) {
+      return {
+        ...res,
+        error: "Invalid JSON format",
+      };
+    }
+
+    return {
+      model: res.model,
+      ...parsed,
+    };
+  });
+
+  const aggregated = aggregateModelResponses(parsedResponses);
 
   return {
-    models: responses,
-    ...aggregated
+    models: parsedResponses,
+    ...aggregated,
   };
 }
