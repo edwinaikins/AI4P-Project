@@ -27,12 +27,12 @@ Return:
 }
 `;
 
-  const input = {
-    rfp,
-    proposal
-  };
+  const userInput = `
+  RFP: ${JSON.stringify(rfp, null, 2)}
+  Proposal: ${JSON.stringify(proposal, null, 2)}
+  `;
 
-  const responses = await scoreWithAllModels(prompt, input);
+  const responses = await scoreWithAllModels(prompt, userInput);
 
   const aggregated = aggregateModelResponses(responses);
 

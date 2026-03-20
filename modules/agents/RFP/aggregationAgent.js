@@ -28,13 +28,13 @@ Return JSON:
 }
 `;
 
-  const input = {
-    results,
-    weights,
-    finalScore
-  };
+  const userInput = `
+  Results: ${JSON.stringify(results, null, 2)}
+  Weights: ${JSON.stringify(weights, null, 2)}
+  Final Score: ${finalScore}
+  `;
 
-  const responses = await scoreWithAllModels(prompt, input);
+  const responses = await scoreWithAllModels(prompt, userInput);
 
   // Simple aggregation (no need heavy math here)
   const valid = responses.filter(r => !r.error);

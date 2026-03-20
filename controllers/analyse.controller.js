@@ -243,25 +243,51 @@ export const unifiedIdeaChecker = async (req, res) => {
 };
 
 // RFP evaluator
-export const evaluateRFP = async (req, res) => {
-  const { rfp, proposal, criteria } = req.body;
 
+export const evaluateRFP = async (req, res) => {
+  const { rfp, proposal, proposals, criteria } = req.body;
+
+  // Basic validation
   if (
     typeof rfp !== "object" ||
-    typeof proposal !== "object" ||
-    !Array.isArray(criteria)
+    !Array.isArray(criteria) ||
+    (!proposal && !proposals)
   ) {
-    return res.status(400).json({ error: "Invalid input format" });
+    return res.status(400).json({
+      error:
+        "Invalid input. Provide rfp (object), criteria (array), and proposal or proposals.",
+    });
+  }
+
+  // Validate proposals
+  if (proposal && typeof proposal !== "object") {
+    return res.status(400).json({
+      error: "proposal must be an object",
+    });
+  }
+
+  if (proposals && !Array.isArray(proposals)) {
+    return res.status(400).json({
+      error: "proposals must be an array",
+    });
   }
 
   try {
-    const result = await evaluateProposal({ rfp, proposal, criteria });
+    const result = await evaluateProposals({
+      rfp,
+      proposal,
+      proposals,
+      criteria,
+    });
+
     res.json(result);
   } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ error: "Model or server error", details: err.message });
+    console.error("RFP Evaluation Error:", err);
+
+    res.status(500).json({
+      error: "Model or server error",
+      details: err.message,
+    });
   }
 };
 
