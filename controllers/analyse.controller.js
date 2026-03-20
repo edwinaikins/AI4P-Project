@@ -13,7 +13,7 @@ import { runUnifiedIdeaChecker } from "../modules/creativity/idea-checker.js";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { runAgenticEvaluation } from "../modules/orchestrator/index.js";
-import { evaluateProposal } from "../modules/agents/RFP/index.js";
+import { evaluateProposals } from "../modules/agents/RFP/index.js";
 
 export const analyseCreativity = async (req, res) => {
   const { new_idea } = req.body;
