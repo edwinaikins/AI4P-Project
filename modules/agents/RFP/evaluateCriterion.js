@@ -32,7 +32,7 @@ Return:
     proposal
   };
 
-  const responses = await scoreWithAllModels(prompt, input);
+  const responses = await scoreWithAllModels(prompt, String(input));
 
   const aggregated = aggregateModelResponses(responses);
 
