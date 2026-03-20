@@ -2,7 +2,6 @@ import { callGemini } from "../../services/genai.service.js";
 import { kmeans } from "ml-kmeans";
 import { GoogleAuth } from "google-auth-library";
 import { pool } from "../../config/db.js";
-import { synthesizeReasoning } from "./synthesizeReasoning.js";
 
 const PROJECT_ID = "ai4p-463319";
 const REGION = "us-central1";
