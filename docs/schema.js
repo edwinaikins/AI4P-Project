@@ -61,26 +61,26 @@ export const schemas = {
                 },
               },
               enum: [
-                {id: "conceptual_feasibility", weight: 0.05},
-                {id: "technical_direction_clarity", weight: 0.05},
-                {id: "complexity_awareness", weight: 0.05},
-                {id: "scalability_potential", weight: 0.05},
-                {id: "originality", weight: 0.05},
-                {id: "depth_of_thinking", weight: 0.05},
-                {id: "differentiation_logic", weight: 0.05},
-                {id: "problem_definition_quality", weight: 0.05},
-                {id: "problem_solution_alignment", weight: 0.05},
-                {id: "potential_impact_directional", weight: 0.05},
-                {id: "beneficiary_awareness", weight: 0.05},
-                {id: "ethical_awareness", weight: 0.05},
-                {id: "risk_awareness", weight: 0.05},
-                {id: "regulatory_sensitivity", weight: 0.05},
-                {id: "clarity_of_expression", weight: 0.05},
-                {id: "logical_coherence", weight: 0.05},
-                {id: "idea_stage_completeness", weight: 0.05},
-                {id: "context_awareness", weight: 0.05},
-                {id: "adoption_plausibility",  weight: 0.05},
-                {id: "challenge_alignment", weight: 0.05}
+                { id: "conceptual_feasibility", weight: 0.05 },
+                { id: "technical_direction_clarity", weight: 0.05 },
+                { id: "complexity_awareness", weight: 0.05 },
+                { id: "scalability_potential", weight: 0.05 },
+                { id: "originality", weight: 0.05 },
+                { id: "depth_of_thinking", weight: 0.05 },
+                { id: "differentiation_logic", weight: 0.05 },
+                { id: "problem_definition_quality", weight: 0.05 },
+                { id: "problem_solution_alignment", weight: 0.05 },
+                { id: "potential_impact_directional", weight: 0.05 },
+                { id: "beneficiary_awareness", weight: 0.05 },
+                { id: "ethical_awareness", weight: 0.05 },
+                { id: "risk_awareness", weight: 0.05 },
+                { id: "regulatory_sensitivity", weight: 0.05 },
+                { id: "clarity_of_expression", weight: 0.05 },
+                { id: "logical_coherence", weight: 0.05 },
+                { id: "idea_stage_completeness", weight: 0.05 },
+                { id: "context_awareness", weight: 0.05 },
+                { id: "adoption_plausibility", weight: 0.05 },
+                { id: "challenge_alignment", weight: 0.05 },
               ],
             },
           },
@@ -135,7 +135,7 @@ export const schemas = {
               },
               final_score: { type: "number" },
               rating: { type: "string" },
-            }
+            },
           },
           similarity: {
             type: "object",
@@ -280,23 +280,37 @@ export const schemas = {
 
   RFPEvaluationRequest: {
     type: "object",
-    required: ["rfp", "proposal", "criteria"],
+    required: ["rfp", "criteria"],
     properties: {
       rfp: {
-        type: "object",
-        description: "RFP details and requirements",
+        type: "string",
+        description: "RFP description as plain text",
       },
+
+      // Support SINGLE
       proposal: {
-        type: "object",
-        description: "Proposal details and claims",
+        type: "string",
+        description: "Single proposal as plain text",
       },
+
+      // Support MULTIPLE
+      proposals: {
+        type: "array",
+        description: "Multiple proposals as plain text",
+        items: {
+          type: "string",
+        },
+      },
+
       criteria: {
         type: "array",
         items: {
           type: "object",
+          required: ["name", "description"],
           properties: {
             name: { type: "string" },
             description: { type: "string" },
+            weight: { type: "number" }, // optional but useful
           },
         },
       },
@@ -307,45 +321,44 @@ export const schemas = {
     type: "object",
     properties: {
       status: { type: "string" },
+
       evaluation: {
         type: "object",
         properties: {
-          scores: {
-            type: "object",
-            additionalProperties: {
+          proposals: {
+            type: "array",
+            items: {
               type: "object",
               properties: {
-                score: { type: "number" },
-                confidence: { type: "number" },
-                reasoning: { type: "string" },
-                strengths: {
-                  type: "array",
-                  items: { type: "string" },
+                proposal: { type: "string" },
+
+                scores: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "object",
+                    properties: {
+                      score: { type: "number" },
+                      reasoning: { type: "string" },
+                    },
+                  },
                 },
-                weaknesses: {
-                  type: "array",
-                  items: { type: "string" },
+
+                weights: {
+                  type: "object",
+                  additionalProperties: { type: "number" },
+                },
+
+                final_score: { type: "number" },
+
+                decision: {
+                  type: "string",
+                  enum: ["Recommend", "Do Not Recommend"],
                 },
               },
             },
           },
-          weights: {
-            type: "object",
-            additionalProperties: { type: "number" },
-          },
-          final_score: { type: "number" },
-          decision: { type: "string" },
-          summary: { type: "string" },
-          key_strengths: {
-            type: "array",
-            items: { type: "string" },
-          },
-          key_risks: {
-            type: "array",
-            items: { type: "string" },
-          },
         },
       },
     },
-  }
+  },
 };
