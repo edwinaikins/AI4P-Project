@@ -1,3 +1,4 @@
+import { raw } from "express";
 import { scoreWithAllModels } from "../../services/multiModel.service.js";
 import {
   normalizeModelResponses,
@@ -46,8 +47,9 @@ ${proposal}
   // 🔥 Step 3: aggregate safely
   const aggregated = aggregateModelResponses(normalized);
 
-  return {
-    models: normalized,
-    ...aggregated,
-  };
+  // return {
+  //   models: normalized,
+  //   ...aggregated,
+  // };
+  return {rawResponses};
 }

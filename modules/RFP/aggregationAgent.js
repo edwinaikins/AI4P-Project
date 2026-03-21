@@ -43,9 +43,9 @@ Return JSON:
 
   return {
     models: responses,
-    decision: firstValid.decision || "Borderline",
-    summary: firstValid.summary || "",
-    key_strengths: firstValid.key_strengths || [],
-    key_risks: firstValid.key_risks || []
+    decision: responses.decision || "Borderline",
+    summary: responses.summary || "",
+    key_strengths: responses.key_strengths || [],
+    key_risks: responses.key_risks || []
   };
 }
