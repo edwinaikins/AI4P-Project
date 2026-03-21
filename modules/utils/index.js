@@ -512,47 +512,94 @@ export function extractJSON(text) {
   }
 }
 
+// function safeParseJSON(text) {
+//   try {
+//     return JSON.parse(text);
+//   } catch {
+//     const match = text.match(/\{[\s\S]*\}/);
+//     if (match) {
+//       try {
+//         return JSON.parse(match[0]);
+//       } catch {
+//         return null;
+//       }
+//     }
+//     return null;
+//   }
+// }
+
 function safeParseJSON(text) {
+  if (!text) return null;
+
   try {
     return JSON.parse(text);
   } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      try {
-        return JSON.parse(match[0]);
-      } catch {
-        return null;
-      }
+    // 🔥 Extract FIRST valid JSON block
+    const match = text.match(/\{[\s\S]*?\}/);
+
+    if (!match) return null;
+
+    try {
+      return JSON.parse(match[0]);
+    } catch {
+      return null;
     }
-    return null;
   }
 }
 
-export function normalizeModelResponses(responses) {
-  if (!Array.isArray(responses)) {
-    console.error("normalizeModelResponses received non-array:", responses);
-    return [];
-  }
+// // export function normalizeModelResponses(responses) {
+// //   if (!Array.isArray(responses)) {
+// //     console.error("normalizeModelResponses received non-array:", responses);
+// //     return [];
+// //   }
 
+// //   return responses.map((res) => {
+// //     if (res.error) return res;
+
+// //     if (typeof res.score === "number") return res;
+
+// //     const parsed = safeParseJSON(res.output || res.text || "");
+
+// //     if (!parsed) {
+// //       return {
+// //         model: res.model,
+// //         error: "Parsing failed",
+// //       };
+// //     }
+
+// //     return {
+// //       model: res.model,
+// //       score: parsed.score,
+// //       confidence: parsed.confidence,
+// //       reasoning: parsed.reasoning,
+// //       strengths: parsed.strengths || [],
+// //       weaknesses: parsed.weaknesses || [],
+// //     };
+// //   });
+// }
+
+export function normalizeModelResponses(responses) {
   return responses.map((res) => {
     if (res.error) return res;
 
-    if (typeof res.score === "number") return res;
+    let raw = res.output || res.text || "";
 
-    const parsed = safeParseJSON(res.output || res.text || "");
+    // 🔥 Extract JSON safely
+    const parsed = safeParseJSON(raw);
 
-    if (!parsed) {
+    if (!parsed || typeof parsed.score !== "number") {
       return {
         model: res.model,
         error: "Parsing failed",
       };
     }
+    console.log("RAW MODEL OUTPUT:", raw);
 
     return {
       model: res.model,
       score: parsed.score,
-      confidence: parsed.confidence,
-      reasoning: parsed.reasoning,
+      confidence: parsed.confidence ?? 0.5,
+      reasoning: parsed.reasoning || "",
       strengths: parsed.strengths || [],
       weaknesses: parsed.weaknesses || [],
     };
