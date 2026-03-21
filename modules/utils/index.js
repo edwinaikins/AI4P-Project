@@ -392,50 +392,6 @@ export async function fetchDeepIdeas() {
 
 // RFP
 
-// export function aggregateModelResponses(responses) {
-//   const valid = responses.filter(
-//     (r) => !r.error && typeof r.score === "number"
-//   );
-
-//   if (!valid.length) {
-//     return {
-//       score: 0,
-//       confidence: 0,
-//       reasoning: "All models failed",
-//       strengths: [],
-//       weaknesses: [],
-//     };
-//   }
-
-//   // 🔥 Confidence-weighted scoring
-//   let totalScore = 0;
-//   let totalWeight = 0;
-
-//   valid.forEach((r) => {
-//     const weight = r.confidence ?? 1;
-//     totalScore += r.score * weight;
-//     totalWeight += weight;
-//   });
-
-//   const finalScore = totalScore / totalWeight;
-
-//   const strengths = [];
-//   const weaknesses = [];
-
-//   valid.forEach((r) => {
-//     if (Array.isArray(r.strengths)) strengths.push(...r.strengths);
-//     if (Array.isArray(r.weaknesses)) weaknesses.push(...r.weaknesses);
-//   });
-
-//   const unique = (arr) => [...new Set(arr)];
-
-//   return {
-//     score: Number(finalScore.toFixed(2)),
-//     reasoning: synthesizeReasoning(valid),
-//     strengths: unique(strengths).slice(0, 5),
-//     weaknesses: unique(weaknesses).slice(0, 5),
-//   };
-// }
 
 export function aggregateModelResponses(responses) {
   const valid = responses.filter(
@@ -446,9 +402,7 @@ export function aggregateModelResponses(responses) {
     return {
       score: 0,
       confidence: 0,
-      reasoning: "All models failed",
-      strengths: [],
-      weaknesses: [],
+      reasoning: "All models failed"
     };
   }
 
@@ -460,9 +414,7 @@ export function aggregateModelResponses(responses) {
   return {
     score: Number(avgScore.toFixed(2)),
     confidence: Number(avgConfidence.toFixed(2)),
-    reasoning: valid[0].reasoning,
-    strengths: valid.flatMap((v) => v.strengths || []).slice(0, 5),
-    weaknesses: valid.flatMap((v) => v.weaknesses || []).slice(0, 5),
+    reasoning: valid[0].reasoning
   };
 }
 
@@ -512,21 +464,6 @@ export function extractJSON(text) {
   }
 }
 
-// function safeParseJSON(text) {
-//   try {
-//     return JSON.parse(text);
-//   } catch {
-//     const match = text.match(/\{[\s\S]*\}/);
-//     if (match) {
-//       try {
-//         return JSON.parse(match[0]);
-//       } catch {
-//         return null;
-//       }
-//     }
-//     return null;
-//   }
-// }
 
 function safeParseJSON(text) {
   if (!text) return null;
@@ -547,70 +484,27 @@ function safeParseJSON(text) {
   }
 }
 
-// // export function normalizeModelResponses(responses) {
-// //   if (!Array.isArray(responses)) {
-// //     console.error("normalizeModelResponses received non-array:", responses);
-// //     return [];
-// //   }
-
-// //   return responses.map((res) => {
-// //     if (res.error) return res;
-
-// //     if (typeof res.score === "number") return res;
-
-// //     const parsed = safeParseJSON(res.output || res.text || "");
-
-// //     if (!parsed) {
-// //       return {
-// //         model: res.model,
-// //         error: "Parsing failed",
-// //       };
-// //     }
-
-// //     return {
-// //       model: res.model,
-// //       score: parsed.score,
-// //       confidence: parsed.confidence,
-// //       reasoning: parsed.reasoning,
-// //       strengths: parsed.strengths || [],
-// //       weaknesses: parsed.weaknesses || [],
-// //     };
-// //   });
-// }
 
 export function normalizeModelResponses(responses) {
   return responses.map((res) => {
     if (res.error) return res;
 
-    // Already parsed by model layer
-    if (typeof res.score === "number") {
-      return {
-        model: res.model,
-        score: res.score,
-        confidence: res.confidence ?? 0.5,
-        reasoning: res.reasoning || "",
-        strengths: res.strengths || [],
-        weaknesses: res.weaknesses || []
-      };
-    }
+    if (typeof res.score === "number") return res;
 
-    // Fallback (just in case)
     const parsed = safeParseJSON(res.output || res.text || "");
 
-    if (!parsed || typeof parsed.score !== "number") {
+    if (!parsed) {
       return {
         model: res.model,
-        error: "Parsing failed"
+        error: "Parsing failed",
       };
     }
 
     return {
       model: res.model,
       score: parsed.score,
-      confidence: parsed.confidence ?? 0.5,
-      reasoning: parsed.reasoning || "",
-      strengths: parsed.strengths || [],
-      weaknesses: parsed.weaknesses || []
+      confidence: parsed.confidence,
+      reasoning: parsed.reasoning
     };
   });
 }

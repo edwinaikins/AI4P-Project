@@ -15,7 +15,7 @@ Definition: ${criterion.description}
 Instructions:
 - Evaluate ONLY based on this criterion
 - Be critical and evidence-based
-- Avpoid vague statements and generalities
+- Avoid vague statements and generalities
 
 CRITICAL:
 You MUST return ONLY valid JSON,
@@ -25,11 +25,9 @@ DO NOT include:
 
 Return EXACTLY:
 {
-  "score": number,
-  "confidence": number,
-  "reasoning": string,
-  "strengths": string[],
-  "weaknesses": string[]
+  "score": number (1-10),
+  "confidence": number (1-10),
+  "reasoning": string
 }
 `;
 
@@ -41,13 +39,13 @@ Proposal:
 ${proposal}
 `;
 
-  // 🔥 Step 1: call models
+  // Step 1: call models
   const rawResponses = await scoreWithAllModels(prompt, userInput);
 
-  // 🔥 Step 2: normalize (THIS FIXES YOUR ERROR)
+  // Step 2: normalize (THIS FIXES YOUR ERROR)
   const normalized = normalizeModelResponses(rawResponses);
 
-  // 🔥 Step 3: aggregate safely
+  // Step 3: aggregate safely
   const aggregated = aggregateModelResponses(normalized);
 
   return {
