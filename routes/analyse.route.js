@@ -1,19 +1,32 @@
-import { Router } from 'express';
-import multer from 'multer';
-import {analyseCreativity, analyseExtractIdea, analyseFullIdea, analyseCreativityIdea, analyseStackRanking, analyseIdea, ideaChecker, stackranking, snetideachecker, unifiedIdeaChecker, agenticIdeaAnalyses, evaluateRFP } from '../controllers/analyse.controller.js';
+import { Router } from "express";
+import multer from "multer";
+import {
+  analyseCreativity,
+  analyseExtractIdea,
+  analyseFullIdea,
+  analyseCreativityIdea,
+  analyseStackRanking,
+  analyseIdea,
+  ideaChecker,
+  stackranking,
+  snetideachecker,
+  unifiedIdeaChecker,
+  agenticIdeaAnalyses,
+  evaluateRFP,
+} from "../controllers/analyse.controller.js";
 
 const router = Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: "uploads/" });
 
-router.post('/analysecreativity', analyseCreativity);
-router.post('/analysecreativeidea', analyseCreativityIdea),
-router.post('/analysefullidea', analyseFullIdea);
-router.post('/extractidea', upload.single('file'), analyseExtractIdea);
-router.post('/stackranking', analyseStackRanking);
+router.post("/analysecreativity", analyseCreativity);
+router.post("/analysecreativeidea", analyseCreativityIdea),
+  router.post("/analysefullidea", analyseFullIdea);
+router.post("/extractidea", upload.single("file"), analyseExtractIdea);
+router.post("/stackranking", analyseStackRanking);
 
 // Deep Ideation
-router.post('/analyseidea', analyseIdea);
-router.post('/ideachecker', ideaChecker);
+router.post("/analyseidea", analyseIdea);
+router.post("/ideachecker", ideaChecker);
 /**
  * @swagger
  * /stackrank:
@@ -43,7 +56,7 @@ router.post('/ideachecker', ideaChecker);
  *             schema:
  *               $ref: '#/components/schemas/StackRankResponse'
  */
-router.post('/stackrank', stackranking);
+router.post("/stackrank", stackranking);
 //router.post('/processideas', processIdeas);
 
 //snet
@@ -70,7 +83,7 @@ router.post('/stackrank', stackranking);
  *             schema:
  *               $ref: '#/components/schemas/SnetIdeaCheckerResponse'
  */
-router.post('/snetideachecker', snetideachecker);
+router.post("/snetideachecker", snetideachecker);
 
 //unified
 /**
@@ -102,7 +115,7 @@ router.post('/snetideachecker', snetideachecker);
  *             schema:
  *               $ref: '#/components/schemas/UnifiedIdeaCheckerResponse'
  */
-router.post('/unifiedideachecker', unifiedIdeaChecker);
+router.post("/unifiedideachecker", unifiedIdeaChecker);
 
 /**
  * @swagger
@@ -124,36 +137,33 @@ router.post('/unifiedideachecker', unifiedIdeaChecker);
  *             schema:
  *               $ref: '#/components/schemas/AgenticEvaluationResponse'
  */
-router.post('/submitidea', agenticIdeaAnalyses);
+router.post("/submitidea", agenticIdeaAnalyses);
 
 /**
  * @swagger
  * /api/evaluateRFP:
  *  post:
  *    summary: Evaluate RFP proposal
- *   description: |
- *     Evaluates a proposal against an RFP using multiple criteria and models.
- *    The evaluation process includes:
- *    1. Normalizing criterion weights
- *   2. Running parallel evaluations for each criterion
- *   3. Aggregating results into a final score
- *  4. Applying critical failure overrides
- *   5. Generating a comprehensive evaluation report
- *   Tags: [RFP Evaluation]
- *   requestBody:
- *    required: true
- *   content:
- *     application/json:
- *      schema:
- *      $ref: '#/components/schemas/RFPEvaluationRequest'
- *   responses:
- *    200:
- *    description: Evaluation result
- *   content:
- *    application/json:
- *     schema:
- *     $ref: '#/components/schemas/RFPEvaluationResponse'
+ *    description: Evaluates a proposal against an RFP using multiple criteria and models.
+ *      The evaluation process includes:
+ *      1. Normalizing criterion weights
+ *      2. Running parallel evaluations for each criterion
+ *      3. Aggregating results into a final score
+ *      4. Applying critical failure overrides
+ *      5. Generating a comprehensive evaluation report
+ *    tags: [RFP Evaluation]
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema: $ref: '#/components/schemas/RFPEvaluationRequest'
+ *    responses:
+ *      200:
+ *        description: Evaluation result
+ *        content:
+ *          application/json:
+ *            schema: $ref: '#/components/schemas/RFPEvaluationResponse'
  */
-router.post('/evaluateRFP', evaluateRFP);
+router.post("/evaluateRFP", evaluateRFP);
 
 export default router;
