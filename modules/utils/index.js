@@ -400,21 +400,12 @@ export function aggregateModelResponses(responses) {
 
   if (!valid.length) {
     return {
-      score: 0,
-      confidence: 0,
-      reasoning: "All models failed"
+      score: 0
     };
   }
 
-  const avgScore = valid.reduce((sum, r) => sum + r.score, 0) / valid.length;
-
-  const avgConfidence =
-    valid.reduce((sum, r) => sum + (r.confidence || 0.5), 0) / valid.length;
-
   return {
-    score: Number(avgScore.toFixed(2)),
-    confidence: Number(avgConfidence.toFixed(2)),
-    reasoning: valid[0].reasoning
+    score: Number(avgScore.toFixed(2))
   };
 }
 

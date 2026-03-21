@@ -50,6 +50,6 @@ ${proposal}
 
   return {
     models: normalized,
-    ...aggregated,
+    score: aggregated.score,
   };
 }
