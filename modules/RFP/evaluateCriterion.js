@@ -1,4 +1,3 @@
-import { raw } from "express";
 import { scoreWithAllModels } from "../../services/multiModel.service.js";
 import {
   normalizeModelResponses,
@@ -16,17 +15,21 @@ Definition: ${criterion.description}
 Instructions:
 - Evaluate ONLY based on this criterion
 - Be critical and evidence-based
-- DO NOT include any text outside JSON
-- Output MUST be valid JSON only
-- Output MUST start with { and end with }
+- Avpoid vague statements and generalities
+
+CRITICAL:
+You MUST return ONLY valid JSON,
+DO NOT include:
+- any text outside JSON
+- explanations, justifications, or reasoning outside the JSON
 
 Return EXACTLY:
 {
-  "score": number (1-10),
-  "confidence": number (0-1),
-  "reasoning": "...",
-  "strengths": ["..."],
-  "weaknesses": ["..."]
+  "score": number,
+  "confidence": number,
+  "reasoning": string,
+  "strengths": string[],
+  "weaknesses": string[]
 }
 `;
 
@@ -47,9 +50,8 @@ ${proposal}
   // 🔥 Step 3: aggregate safely
   const aggregated = aggregateModelResponses(normalized);
 
-  // return {
-  //   models: normalized,
-  //   ...aggregated,
-  // };
-  return {rawResponses};
+  return {
+    models: normalized,
+    ...aggregated,
+  };
 }
