@@ -582,18 +582,27 @@ export function normalizeModelResponses(responses) {
   return responses.map((res) => {
     if (res.error) return res;
 
-    let raw = res.output || res.text || "";
+    // Already parsed by model layer
+    if (typeof res.score === "number") {
+      return {
+        model: res.model,
+        score: res.score,
+        confidence: res.confidence ?? 0.5,
+        reasoning: res.reasoning || "",
+        strengths: res.strengths || [],
+        weaknesses: res.weaknesses || []
+      };
+    }
 
-    // 🔥 Extract JSON safely
-    const parsed = safeParseJSON(raw);
+    // Fallback (just in case)
+    const parsed = safeParseJSON(res.output || res.text || "");
 
     if (!parsed || typeof parsed.score !== "number") {
       return {
         model: res.model,
-        error: "Parsing failed",
+        error: "Parsing failed"
       };
     }
-    console.log("RAW MODEL OUTPUT:", raw);
 
     return {
       model: res.model,
@@ -601,7 +610,7 @@ export function normalizeModelResponses(responses) {
       confidence: parsed.confidence ?? 0.5,
       reasoning: parsed.reasoning || "",
       strengths: parsed.strengths || [],
-      weaknesses: parsed.weaknesses || [],
+      weaknesses: parsed.weaknesses || []
     };
   });
 }
