@@ -39,33 +39,10 @@ export async function evaluateProposals(input) {
       // STATE: AGGREGATE (code-based)
       const finalScore = computeWeightedScore(results, weights);
 
-      const hasCriticalFailure = Object.values(results).some(
-        (r) => r.score < 4
-      );
-
-      let aggregation;
-
-      if (hasCriticalFailure) {
-        aggregation = {
-          decision: "Do Not Recommend",
-          summary: "Critical weakness detected.",
-          key_strengths: [],
-          key_risks: ["One or more criteria scored too low"]
-        };
-      } else {
-        aggregation = await aggregationAgent({
-          results,
-          weights,
-          finalScore
-        });
-      }
-
       return {
         proposal: proposalText,
         scores: results,
-        weights,
-        final_score: finalScore,
-        ...aggregation
+        final_score: finalScore
       };
     })
   );
