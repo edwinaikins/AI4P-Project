@@ -1,7 +1,10 @@
 ///RFP
 
 import { scoreWithAllModels } from "../../../services/multiModel.service.js";
-import { aggregateModelResponses, normalizeModelResponses } from "../../utils/index.js";
+import {
+  aggregateModelResponses,
+  normalizeModelResponses,
+} from "../../utils/index.js";
 
 export async function evaluateCriterion({ rfp, proposal, criterion }) {
   const prompt = `
@@ -33,7 +36,8 @@ Return:
   `;
 
   const responses = await scoreWithAllModels(prompt, userInput);
-  const normalizedresponses = await normalizeModelResponses(responses);
+  const safeArray = Array.isArray(responses) ? responses : [responses];
+  const normalizedresponses = await normalizeModelResponses(safeArray);
 
   // NEW: Parse each model safely
   // const parsedResponses = responses.map((res) => {

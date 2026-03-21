@@ -529,13 +529,16 @@ function safeParseJSON(text) {
 }
 
 export function normalizeModelResponses(responses) {
+  if (!Array.isArray(responses)) {
+    console.error("normalizeModelResponses received non-array:", responses);
+    return [];
+  }
+
   return responses.map((res) => {
     if (res.error) return res;
 
-    // If already structured (idea system style), return as-is
     if (typeof res.score === "number") return res;
 
-    // Otherwise parse raw text
     const parsed = safeParseJSON(res.output || res.text || "");
 
     if (!parsed) {
