@@ -515,3 +515,43 @@ export function extractJSON(text) {
     return null;
   }
 }
+
+function safeParseJSON(text) {
+  try {
+    // Extract first valid JSON block
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found");
+
+    return JSON.parse(match[0]);
+  } catch (err) {
+    return null;
+  }
+}
+
+export function normalizeModelResponses(responses) {
+  return responses.map((res) => {
+    if (res.error) return res;
+
+    // If already structured (idea system style), return as-is
+    if (typeof res.score === "number") return res;
+
+    // Otherwise parse raw text
+    const parsed = safeParseJSON(res.output || res.text || "");
+
+    if (!parsed) {
+      return {
+        model: res.model,
+        error: "Parsing failed"
+      };
+    }
+
+    return {
+      model: res.model,
+      score: parsed.score,
+      confidence: parsed.confidence,
+      reasoning: parsed.reasoning,
+      strengths: parsed.strengths || [],
+      weaknesses: parsed.weaknesses || []
+    };
+  });
+}

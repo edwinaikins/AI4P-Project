@@ -1,7 +1,7 @@
 ///RFP
 
 import { scoreWithAllModels } from "../../../services/multiModel.service.js";
-import { aggregateModelResponses } from "../../utils/index.js";
+import { aggregateModelResponses, normalizeModelResponses } from "../../utils/index.js";
 
 export async function evaluateCriterion({ rfp, proposal, criterion }) {
   const prompt = `
@@ -33,32 +33,33 @@ Return:
   `;
 
   const responses = await scoreWithAllModels(prompt, userInput);
+  const normalizedresponses = await normalizeModelResponses(responses);
 
   // NEW: Parse each model safely
-  const parsedResponses = responses.map((res) => {
-    if (res.error) return res;
+  // const parsedResponses = responses.map((res) => {
+  //   if (res.error) return res;
 
-    const rawText = res.text || res.response || res.output || "";
+  //   const rawText = res.text || res.response || res.output || "";
 
-    const parsed = extractJSON(rawText);
+  //   const parsed = extractJSON(rawText);
 
-    if (!parsed) {
-      return {
-        ...res,
-        error: "Invalid JSON format",
-      };
-    }
+  //   if (!parsed) {
+  //     return {
+  //       ...res,
+  //       error: "Invalid JSON format",
+  //     };
+  //   }
 
-    return {
-      model: res.model,
-      ...parsed,
-    };
-  });
+  //   return {
+  //     model: res.model,
+  //     ...parsed,
+  //   };
+  // });
 
-  const aggregated = aggregateModelResponses(parsedResponses);
+  const aggregated = aggregateModelResponses(normalizeModelResponses);
 
   return {
-    models: parsedResponses,
+    models: normalizedresponses,
     ...aggregated,
   };
 }
