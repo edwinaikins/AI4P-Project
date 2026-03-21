@@ -1,6 +1,6 @@
 ///RFP
 
-import { scoreWithAllModels } from "../../../services/multiModel.service.js";
+import { scoreWithAllModels } from "../../services/multiModel.service.js";
 
 export async function aggregationAgent({ results, weights, finalScore }) {
   const prompt = `
