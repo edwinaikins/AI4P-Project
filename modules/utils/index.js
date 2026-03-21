@@ -404,6 +404,8 @@ export function aggregateModelResponses(responses) {
     };
   }
 
+  const avgScore = valid.reduce((sum, r) => sum + r.score, 0) / valid.length;
+
   return {
     score: Number(avgScore.toFixed(2))
   };
