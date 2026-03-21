@@ -13,7 +13,7 @@ import { runUnifiedIdeaChecker } from "../modules/creativity/idea-checker.js";
 import fs from "fs/promises";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { runAgenticEvaluation } from "../modules/orchestrator/index.js";
-import { evaluateProposals } from "../modules/agents/RFP/index.js";
+import { evaluateProposals } from "../modules/RFP/orchestrator/index.js";
 
 export const analyseCreativity = async (req, res) => {
   const { new_idea } = req.body;
@@ -247,36 +247,60 @@ export const unifiedIdeaChecker = async (req, res) => {
 export const evaluateRFP = async (req, res) => {
   const { rfp, proposal, proposals, criteria } = req.body;
 
-  // Basic validation
-  if (
-    typeof rfp !== "object" ||
-    !Array.isArray(criteria) ||
-    (!proposal && !proposals)
-  ) {
+  // Validate RFP
+  if (typeof rfp !== "string" || !rfp.trim()) {
     return res.status(400).json({
-      error:
-        "Invalid input. Provide rfp (object), criteria (array), and proposal or proposals.",
+      error: "rfp must be a non-empty string",
     });
   }
 
-  // Validate proposals
-  if (proposal && typeof proposal !== "object") {
+  // Validate criteria
+  if (!Array.isArray(criteria) || criteria.length === 0) {
     return res.status(400).json({
-      error: "proposal must be an object",
+      error: "criteria must be a non-empty array",
     });
   }
 
-  if (proposals && !Array.isArray(proposals)) {
+  // Normalize proposals (single OR multiple → array of strings)
+  let proposalList = [];
+
+  if (proposal) {
+    if (typeof proposal !== "string") {
+      return res.status(400).json({
+        error: "proposal must be a string",
+      });
+    }
+    proposalList = [proposal];
+  }
+
+  if (proposals) {
+    if (!Array.isArray(proposals)) {
+      return res.status(400).json({
+        error: "proposals must be an array of strings",
+      });
+    }
+
+    const invalid = proposals.some((p) => typeof p !== "string");
+
+    if (invalid) {
+      return res.status(400).json({
+        error: "all proposals must be strings",
+      });
+    }
+
+    proposalList = proposals;
+  }
+
+  if (!proposalList.length) {
     return res.status(400).json({
-      error: "proposals must be an array",
+      error: "At least one proposal (string) is required",
     });
   }
 
   try {
     const result = await evaluateProposals({
       rfp,
-      proposal,
-      proposals,
+      proposals: proposalList, // ALWAYS pass normalized array
       criteria,
     });
 

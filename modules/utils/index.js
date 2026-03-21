@@ -439,9 +439,7 @@ export async function fetchDeepIdeas() {
 
 export function aggregateModelResponses(responses) {
   const valid = responses.filter(
-    (r) =>
-      !r.error &&
-      typeof r.score === "number"
+    (r) => !r.error && typeof r.score === "number"
   );
 
   if (!valid.length) {
@@ -450,23 +448,21 @@ export function aggregateModelResponses(responses) {
       confidence: 0,
       reasoning: "All models failed",
       strengths: [],
-      weaknesses: []
+      weaknesses: [],
     };
   }
 
-  const avgScore =
-    valid.reduce((sum, r) => sum + r.score, 0) / valid.length;
+  const avgScore = valid.reduce((sum, r) => sum + r.score, 0) / valid.length;
 
   const avgConfidence =
-    valid.reduce((sum, r) => sum + (r.confidence || 0.5), 0) /
-    valid.length;
+    valid.reduce((sum, r) => sum + (r.confidence || 0.5), 0) / valid.length;
 
   return {
     score: Number(avgScore.toFixed(2)),
     confidence: Number(avgConfidence.toFixed(2)),
     reasoning: valid[0].reasoning,
     strengths: valid.flatMap((v) => v.strengths || []).slice(0, 5),
-    weaknesses: valid.flatMap((v) => v.weaknesses || []).slice(0, 5)
+    weaknesses: valid.flatMap((v) => v.weaknesses || []).slice(0, 5),
   };
 }
 
@@ -518,12 +514,16 @@ export function extractJSON(text) {
 
 function safeParseJSON(text) {
   try {
-    // Extract first valid JSON block
+    return JSON.parse(text);
+  } catch {
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found");
-
-    return JSON.parse(match[0]);
-  } catch (err) {
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch {
+        return null;
+      }
+    }
     return null;
   }
 }
@@ -544,7 +544,7 @@ export function normalizeModelResponses(responses) {
     if (!parsed) {
       return {
         model: res.model,
-        error: "Parsing failed"
+        error: "Parsing failed",
       };
     }
 
@@ -554,7 +554,7 @@ export function normalizeModelResponses(responses) {
       confidence: parsed.confidence,
       reasoning: parsed.reasoning,
       strengths: parsed.strengths || [],
-      weaknesses: parsed.weaknesses || []
+      weaknesses: parsed.weaknesses || [],
     };
   });
 }
