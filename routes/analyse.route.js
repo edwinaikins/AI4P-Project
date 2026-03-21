@@ -29,7 +29,7 @@ router.post("/analyseidea", analyseIdea);
 router.post("/ideachecker", ideaChecker);
 /**
  * @swagger
- * /stackrank:
+ * /api/stackrank:
  *   post:
  *     summary: Rank ideas within a challenge
  *     description: |
@@ -62,7 +62,7 @@ router.post("/stackrank", stackranking);
 //snet
 /**
  * @swagger
- * /snetideachecker:
+ * /api/snetideachecker:
  *   post:
  *     summary: Check idea against SNET ecosystem
  *     description: |
@@ -88,7 +88,7 @@ router.post("/snetideachecker", snetideachecker);
 //unified
 /**
  * @swagger
- * /unifiedideachecker:
+ * /api/unifiedideachecker:
  *   post:
  *     summary: Unified idea similarity check
  *     description: |
@@ -142,27 +142,23 @@ router.post("/submitidea", agenticIdeaAnalyses);
 /**
  * @swagger
  * /api/evaluateRFP:
- *  post:
- *    summary: Evaluate RFP proposal
- *    description: Evaluates a proposal against an RFP using multiple criteria and models.
- *      The evaluation process includes:
- *      1. Normalizing criterion weights
- *      2. Running parallel evaluations for each criterion
- *      3. Aggregating results into a final score
- *      4. Applying critical failure overrides
- *      5. Generating a comprehensive evaluation report
- *    tags: [RFP Evaluation]
- *    requestBody:
- *      required: true
- *      content:
- *          application/json:
- *              schema: $ref: '#/components/schemas/RFPEvaluationRequest'
- *    responses:
- *      200:
- *        description: Evaluation result
- *        content:
- *          application/json:
- *            schema: $ref: '#/components/schemas/RFPEvaluationResponse'
+ *   post:
+ *     summary: Evaluate RFP proposal
+ *     tags: [RFP Evaluation]
+ *     description: Evaluates a proposal against an RFP using multiple criteria and models. The evaluation process includes: 1. Normalizing criterion weights 2. Running parallel evaluations for each criterion 3. Aggregating results into a final score 4. Applying critical failure overrides 5. Generating a comprehensive evaluation report
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RFPEvaluationRequest'
+ *     responses:
+ *       200:
+ *         description: Evaluation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/RFPEvaluationResponse'
  */
 router.post("/evaluateRFP", evaluateRFP);
 
