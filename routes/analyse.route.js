@@ -145,14 +145,14 @@ router.post("/submitidea", agenticIdeaAnalyses);
  *   post:
  *     summary: Evaluate RFP proposal
  *     tags: [RFP Evaluation]
- *    description: |
- *      Evaluates a proposal against an RFP using multiple criteria and models.
- *      The evaluation process includes:
- *       1. Normalizing criterion weights
- *       2. Running parallel evaluations for each criterion
- *       3. Aggregating results into a final score
- *       4. Applying critical failure overrides
- *       5. Generating a comprehensive evaluation repor
+ *     description: |
+ *       Evaluates a proposal against an RFP using multiple criteria and models.
+ *       The evaluation process includes:
+ *         1. Normalizing criterion weights
+ *         2. Running parallel evaluations for each criterion
+ *         3. Aggregating results into a final score
+ *         4. Applying critical failure overrides
+ *         5. Generating a comprehensive evaluation report
  *     requestBody:
  *       required: true
  *       content:
